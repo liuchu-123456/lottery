@@ -324,10 +324,10 @@ function drawWheel(rotateAngle=0) {
     ctx.fillStyle='#666'; ctx.font='bold 15px Microsoft YaHei'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('奖品已全部抽完',R,R); return;
   }
-  const total = av.reduce((s,p)=>s+p.remaining,0);
+  const total = av.length;
   let start = rotateAngle;
   av.forEach((p,i)=>{
-    const slice=(p.remaining/total)*Math.PI*2;
+    const slice=(1/total)*Math.PI*2;
     const end=start+slice, mid=start+slice/2;
     ctx.beginPath(); ctx.moveTo(R,R); ctx.arc(R,R,R-2,start,end); ctx.closePath();
     ctx.fillStyle=p.color; ctx.fill();
@@ -373,10 +373,10 @@ function startSpin() {
   document.getElementById('centerBtn').textContent='...';
 
   const winner=pickPrize();
-  const totalR=av.reduce((s,p)=>s+p.remaining,0);
+  const totalR=av.length;
   let offset=0;
-  for(const p of av){ if(p.id===winner.id) break; offset+=(p.remaining/totalR)*Math.PI*2; }
-  const sliceMid=offset+(winner.remaining/totalR)*Math.PI*2/2;
+  for(const p of av){ if(p.id===winner.id) break; offset+=(1/totalR)*Math.PI*2; }
+  const sliceMid=offset+(1/totalR)*Math.PI*2/2;
   const targetAngle=5*Math.PI*2+(Math.PI*1.5-sliceMid)%(Math.PI*2);
 
   const duration=3500, startTime=performance.now(), startAngle=currentAngle;
