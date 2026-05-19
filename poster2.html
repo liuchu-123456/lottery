@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦞 虾王MVP 荣誉海报生成器</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { min-height:100vh; background:radial-gradient(ellipse at top,#1a1a2e,#0d0d1a); font-family:'Microsoft YaHei',sans-serif; display:flex; flex-direction:column; align-items:center; padding:28px 16px 40px; }
+h1 { color:#FFD700; font-size:1.5rem; margin-bottom:6px; letter-spacing:3px; text-shadow:0 0 20px rgba(255,215,0,.6); }
+.sub { color:rgba(255,215,0,.5); font-size:.82rem; margin-bottom:24px; letter-spacing:3px; }
+
+.controls { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:center; margin-bottom:20px; width:100%; max-width:700px; }
+.ctrl-group { display:flex; align-items:center; gap:8px; }
+.ctrl-group label { color:#aaa; font-size:.85rem; white-space:nowrap; }
+input[type=text], input[type=number] {
+  background:rgba(255,255,255,.08); border:1.5px solid rgba(255,215,0,.3); border-radius:10px;
+  padding:9px 14px; color:#fff; font-size:.95rem; outline:none; transition:border-color .2s;
+}
+input[type=text]:focus, input[type=number]:focus { border-color:#FFD700; }
+input[type=text] { width:160px; }
+input[type=number] { width:70px; text-align:center; }
+
+.btn { border:none; border-radius:10px; padding:10px 22px; font-size:.92rem; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn-gen { background:linear-gradient(135deg,#FFD700,#FFA500); color:#1a1a2e; box-shadow:0 4px 14px rgba(255,215,0,.4); }
+.btn-gen:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(255,215,0,.6); }
+.btn-dl  { background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; box-shadow:0 4px 14px rgba(39,174,96,.4); }
+.btn-dl:hover  { transform:translateY(-2px); box-shadow:0 6px 20px rgba(39,174,96,.6); }
+
+.canvas-wrap { position:relative; max-width:100%; }
+canvas { border-radius:12px; box-shadow:0 0 40px rgba(255,215,0,.25); max-width:100%; display:block; }
+.loading { color:rgba(255,215,0,.6); font-size:.9rem; margin:20px; }
+
+.btn-row { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+
+/* 位置调节（高级） */
+.advanced { margin-top:12px; width:100%; max-width:700px; }
+.adv-toggle { background:none; border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.35); border-radius:20px; padding:5px 16px; font-size:.75rem; cursor:pointer; transition:all .2s; }
+.adv-toggle:hover { color:rgba(255,255,255,.6); border-color:rgba(255,255,255,.25); }
+.adv-panel { display:none; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px 16px; margin-top:10px; }
+.adv-panel.show { display:block; }
+.adv-row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
+.adv-row label { color:#888; font-size:.78rem; min-width:60px; }
+input[type=range] { width:120px; accent-color:#FFD700; }
+.range-val { color:#FFD700; font-size:.8rem; min-width:36px; }
+</style>
+</head>
+<body>
+<h1>🦞 虾王MVP 荣誉海报</h1>
+<p class="sub">周周优秀 · 虾王加冕 · 实力认证</p>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <label>获奖人姓名</label>
+    <input type="text" id="nameInput" placeholder="输入姓名" value="张三">
+  </div>
+  <div class="ctrl-group">
+    <label>第</label>
+    <input type="number" id="weekInput" value="1" min="1" max="52">
+    <label>周</label>
+  </div>
+  <button class="btn btn-gen" onclick="render()">🎨 生成海报</button>
+</div>
+
+<!-- 高级：位置调节 -->
+<div class="advanced">
+  <button class="adv-toggle" onclick="toggleAdv()">⚙️ 调整姓名位置与样式</button>
+  <div class="adv-panel" id="advPanel">
+    <div class="adv-row">
+      <label>横向位置</label>
+      <input type="range" id="posX" min="0" max="100" value="18" oninput="syncRange(this,'posXV');render()">
+      <span class="range-val" id="posXV">18%</span>
+      <label>纵向位置</label>
+      <input type="range" id="posY" min="0" max="100" value="84" oninput="syncRange(this,'posYV');render()">
+      <span class="range-val" id="posYV">84%</span>
+    </div>
+    <div class="adv-row">
+      <label>字体大小</label>
+      <input type="range" id="fontSize" min="20" max="120" value="58" oninput="syncRange(this,'fontSizeV');render()">
+      <span class="range-val" id="fontSizeV">58px</span>
+      <label>字体颜色</label>
+      <input type="color" id="fontColor" value="#FFD700" oninput="render()" style="width:40px;height:32px;border:none;background:none;cursor:pointer;">
+    </div>
+    <div class="adv-row">
+      <label>描边颜色</label>
+      <input type="color" id="strokeColor" value="#8B0000" oninput="render()" style="width:40px;height:32px;border:none;background:none;cursor:pointer;">
+      <label>描边宽度</label>
+      <input type="range" id="strokeW" min="0" max="10" value="3" oninput="syncRange(this,'strokeWV');render()">
+      <span class="range-val" id="strokeWV">3px</span>
+    </div>
+  </div>
+</div>
+
+<div class="canvas-wrap" style="margin-top:20px">
+  <p class="loading" id="loading">🔄 加载海报背景中...</p>
+  <canvas id="poster" style="display:none"></canvas>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-dl" onclick="download()">⬇️ 下载海报</button>
+</div>
+
+<script>
+const BG_URL = 'https://liuchu-123456.github.io/lottery/poster_bg.png';
+const canvas = document.getElementById('poster');
+const ctx = canvas.getContext('2d');
+let bgImg = null;
+
+// 加载背景图
+const img = new Image();
+img.crossOrigin = 'anonymous';
+img.onload = () => {
+  bgImg = img;
+  canvas.width  = img.width;
+  canvas.height = img.height;
+  canvas.style.display = 'block';
+  document.getElementById('loading').style.display = 'none';
+  // 限制显示宽度
+  const maxW = Math.min(700, window.innerWidth - 32);
+  canvas.style.maxWidth = maxW + 'px';
+  render();
+};
+img.onerror = () => {
+  document.getElementById('loading').textContent = '⏳ 背景图加载中，请稍候刷新...';
+};
+img.src = BG_URL + '?v=' + Date.now();
+
+function render() {
+  if (!bgImg) return;
+  const name  = document.getElementById('nameInput').value.trim() || '______';
+  const week  = document.getElementById('weekInput').value || '1';
+  const W = canvas.width, H = canvas.height;
+
+  // 绘制背景
+  ctx.clearRect(0,0,W,H);
+  ctx.drawImage(bgImg, 0, 0, W, H);
+
+  // 读取参数
+  const px    = parseFloat(document.getElementById('posX').value) / 100;
+  const py    = parseFloat(document.getElementById('posY').value) / 100;
+  const fsize = parseInt(document.getElementById('fontSize').value);
+  const fcolor= document.getElementById('fontColor').value;
+  const scolor= document.getElementById('strokeColor').value;
+  const sw    = parseInt(document.getElementById('strokeW').value);
+
+  const x = W * px;
+  const y = H * py;
+
+  ctx.save();
+  ctx.font = `bold ${fsize}px Microsoft YaHei, Arial`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  // 描边
+  if (sw > 0) {
+    ctx.strokeStyle = scolor;
+    ctx.lineWidth = sw * 2;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(name, x, y);
+  }
+  // 填色
+  ctx.fillStyle = fcolor;
+  ctx.shadowColor = 'rgba(0,0,0,0.4)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+  ctx.fillText(name, x, y);
+  ctx.restore();
+
+  // 周次小字（姓名下方）
+  ctx.save();
+  ctx.font = `bold ${Math.round(fsize*0.45)}px Microsoft YaHei`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = 'rgba(255,220,100,0.85)';
+  ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 4;
+  ctx.fillText(`第 ${week} 周`, x, y + fsize * 0.75);
+  ctx.restore();
+}
+
+function syncRange(el, valId) {
+  const unit = el.id === 'fontSize' ? 'px' : el.id === 'strokeW' ? 'px' : '%';
+  document.getElementById(valId).textContent = el.value + unit;
+}
+
+function toggleAdv() {
+  document.getElementById('advPanel').classList.toggle('show');
+}
+
+function download() {
+  if (!bgImg) { alert('请等待背景图加载完成'); return; }
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  const name = document.getElementById('nameInput').value.trim() || 'MVP';
+  const week = document.getElementById('weekInput').value || '1';
+  a.download = `虾王MVP_第${week}周_${name}.png`;
+  a.click();
+}
+
+// 回车刷新
+document.getElementById('nameInput').addEventListener('input', () => render());
+document.getElementById('weekInput').addEventListener('input', () => render());
+</script>
+</body>
+</html>
