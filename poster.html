@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>虾王MVP荣誉证书生成器</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#1a1a2e; display:flex; flex-direction:column; align-items:center; padding:30px 20px; font-family:'Microsoft YaHei',sans-serif; min-height:100vh; }
+h1 { color:#FFD700; font-size:1.4rem; margin-bottom:20px; letter-spacing:3px; }
+.controls { display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap; justify-content:center; }
+.controls label { color:#aaa; font-size:.9rem; }
+.name-input { background:rgba(255,255,255,.1); border:1.5px solid rgba(255,215,0,.4); border-radius:10px; padding:10px 16px; color:#fff; font-size:1rem; outline:none; width:200px; }
+.name-input:focus { border-color:#FFD700; }
+.week-input { background:rgba(255,255,255,.1); border:1.5px solid rgba(255,215,0,.4); border-radius:10px; padding:10px 12px; color:#fff; font-size:.9rem; outline:none; width:80px; text-align:center; }
+.btn { background:linear-gradient(135deg,#FFD700,#FFA500); color:#1a1a2e; border:none; border-radius:10px; padding:10px 24px; font-size:.95rem; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(255,215,0,.5); }
+.btn-dl { background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; }
+canvas { border-radius:12px; box-shadow:0 0 40px rgba(255,215,0,.3); max-width:100%; }
+.btn-row { display:flex; gap:12px; margin-top:16px; }
+</style>
+</head>
+<body>
+<h1>🦞 虾王MVP 荣誉证书生成器</h1>
+<div class="controls">
+  <label>获奖人姓名：</label>
+  <input class="name-input" id="nameInput" type="text" placeholder="输入姓名" value="张三">
+  <label>第</label>
+  <input class="week-input" id="weekInput" type="number" value="1" min="1" max="52">
+  <label>周</label>
+  <button class="btn" onclick="render()">🎨 生成海报</button>
+</div>
+<canvas id="poster" width="800" height="600"></canvas>
+<div class="btn-row">
+  <button class="btn btn-dl" onclick="download()">⬇️ 下载海报</button>
+</div>
+
+<script>
+const W=800, H=600;
+const canvas=document.getElementById('poster');
+const ctx=canvas.getContext('2d');
+
+function render() {
+  const name = document.getElementById('nameInput').value.trim() || '______';
+  const week = document.getElementById('weekInput').value || '1';
+  ctx.clearRect(0,0,W,H);
+
+  // ── 背景渐变（暖黄）──
+  const bg = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, W*0.75);
+  bg.addColorStop(0,   '#FFF9E6');
+  bg.addColorStop(0.4, '#FFF0C0');
+  bg.addColorStop(0.8, '#FFE080');
+  bg.addColorStop(1,   '#FFB800');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // 柔光光晕
+  const glow = ctx.createRadialGradient(W/2, H*0.45, 20, W/2, H*0.45, 280);
+  glow.addColorStop(0, 'rgba(255,255,255,0.55)');
+  glow.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,W,H);
+
+  // ── 金色欧式花纹边框 ──
+  drawBorder();
+
+  // ── 装饰圆点/星星 ──
+  drawDecoStars();
+
+  // ── 顶部标题"虾王MVP"──
+  drawTitle();
+
+  // ── 中间主视觉：卡通龙虾 ──
+  drawLobster(W/2, H*0.44, 170);
+
+  // ── 底部文字 ──
+  drawBottom(name, week);
+}
+
+// ── 金色边框 ──
+function drawBorder() {
+  const m=18, r=18;
+  // 外框
+  ctx.strokeStyle='#B8860B';
+  ctx.lineWidth=6;
+  roundRect(ctx, m, m, W-m*2, H-m*2, r);
+  ctx.stroke();
+  // 内框
+  const m2=28;
+  ctx.strokeStyle='#FFD700';
+  ctx.lineWidth=2.5;
+  roundRect(ctx, m2, m2, W-m2*2, H-m2*2, r-4);
+  ctx.stroke();
+  // 第三层细线
+  const m3=34;
+  ctx.strokeStyle='rgba(184,134,11,0.5)';
+  ctx.lineWidth=1.2;
+  roundRect(ctx, m3, m3, W-m3*2, H-m3*2, r-8);
+  ctx.stroke();
+
+  // 四角花纹
+  const corners=[[m,m],[W-m,m],[m,H-m],[W-m,H-m]];
+  corners.forEach(([x,y])=>{
+    const sx = x===m?1:-1, sy = y===m?1:-1;
+    drawCornerOrnament(x,y,sx,sy);
+  });
+
+  // 上下中央装饰
+  drawCenterOrnament(W/2, m+3, 0);
+  drawCenterOrnament(W/2, H-m-3, 0);
+  drawCenterOrnament(m+3, H/2, Math.PI/2);
+  drawCenterOrnament(W-m-3, H/2, Math.PI/2);
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+function drawCornerOrnament(cx,cy,sx,sy){
+  ctx.save(); ctx.translate(cx,cy); ctx.scale(sx,sy);
+  ctx.strokeStyle='#DAA520'; ctx.lineWidth=2.5;
+  // 大菱形
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(20,0); ctx.lineTo(0,20); ctx.closePath();
+  ctx.fillStyle='rgba(255,215,0,0.25)'; ctx.fill(); ctx.stroke();
+  // 小点
+  [12,20,28].forEach(d=>{
+    ctx.beginPath(); ctx.arc(d,0,3,0,Math.PI*2);
+    ctx.fillStyle='#DAA520'; ctx.fill();
+  });
+  [0,12,20].forEach(d=>{
+    ctx.beginPath(); ctx.arc(0,d,3,0,Math.PI*2);
+    ctx.fillStyle='#DAA520'; ctx.fill();
+  });
+  ctx.restore();
+}
+
+function drawCenterOrnament(cx,cy,rot){
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+  ctx.strokeStyle='#DAA520'; ctx.lineWidth=2;
+  // 小菱形
+  ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(0,-5); ctx.lineTo(8,0); ctx.lineTo(0,5); ctx.closePath();
+  ctx.fillStyle='rgba(255,215,0,0.5)'; ctx.fill(); ctx.stroke();
+  // 两侧线段
+  ctx.beginPath(); ctx.moveTo(-22,0); ctx.lineTo(-10,0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(10,0); ctx.lineTo(22,0); ctx.stroke();
+  ctx.restore();
+}
+
+// ── 装饰星星 ──
+function drawDecoStars(){
+  const stars=[
+    [80,80],[720,80],[80,520],[720,520],
+    [160,50],[640,50],[160,550],[640,550],
+    [50,200],[750,200],[50,400],[750,400],
+  ];
+  stars.forEach(([x,y],i)=>{
+    const size=i%3===0?14:10;
+    drawStar(x,y,size,'rgba(255,180,0,0.6)');
+  });
+}
+
+function drawStar(cx,cy,r,color){
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=i*Math.PI*2/5-Math.PI/2;
+    const b=a+Math.PI/5;
+    i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+    ctx.lineTo(Math.cos(b)*r*0.4,Math.sin(b)*r*0.4);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// ── 标题 ──
+function drawTitle(){
+  // 红色底板
+  const tx=W/2, ty=62;
+  ctx.save();
+  // 底色板
+  const titleW=360, titleH=52;
+  const tg=ctx.createLinearGradient(tx-titleW/2,ty-titleH/2,tx+titleW/2,ty+titleH/2);
+  tg.addColorStop(0,'#CC0000');
+  tg.addColorStop(0.5,'#FF3300');
+  tg.addColorStop(1,'#CC0000');
+  ctx.fillStyle=tg;
+  roundRect(ctx, tx-titleW/2, ty-titleH/2, titleW, titleH, 12);
+  ctx.fill();
+  // 金色描边
+  ctx.strokeStyle='#FFD700'; ctx.lineWidth=2.5;
+  ctx.stroke();
+
+  // 文字
+  ctx.font='bold 42px Microsoft YaHei, Arial';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  // 金色渐变文字
+  const fg=ctx.createLinearGradient(0,ty-20,0,ty+20);
+  fg.addColorStop(0,'#FFE566');
+  fg.addColorStop(0.5,'#FFD700');
+  fg.addColorStop(1,'#B8860B');
+  ctx.fillStyle=fg;
+  ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4; ctx.shadowOffsetY=2;
+  ctx.fillText('🦞 虾王MVP 🏆', tx, ty);
+  ctx.shadowBlur=0;
+
+  // 副标题
+  ctx.font='bold 15px Microsoft YaHei';
+  ctx.fillStyle='#8B0000';
+  ctx.fillText('★ 荣  誉  证  书 ★', tx, ty+38);
+  ctx.restore();
+}
+
+// ── 卡通龙虾 ──
+function drawLobster(cx, cy, size) {
+  const s=size/100;
+  ctx.save(); ctx.translate(cx, cy);
+
+  // 虾身阴影
+  ctx.shadowColor='rgba(180,0,0,0.3)'; ctx.shadowBlur=20; ctx.shadowOffsetY=8;
+
+  // 虾尾（扇形）
+  for(let i=-2;i<=2;i++){
+    const angle=i*18*(Math.PI/180);
+    ctx.save(); ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0, 30*s);
+    ctx.ellipse(i*8*s, 90*s, 14*s, 32*s, angle*0.3, 0, Math.PI*2);
+    const tg=ctx.createLinearGradient(0,30*s,0,120*s);
+    tg.addColorStop(0,'#FF4500'); tg.addColorStop(1,'#CC2200');
+    ctx.fillStyle=tg; ctx.fill();
+    ctx.strokeStyle='#AA1100'; ctx.lineWidth=1.5*s; ctx.stroke();
+    ctx.restore();
+  }
+
+  // 主躯干
+  const bodyGrad=ctx.createRadialGradient(-15*s,-20*s,5*s,0,0,70*s);
+  bodyGrad.addColorStop(0,'#FF6633');
+  bodyGrad.addColorStop(0.5,'#FF3300');
+  bodyGrad.addColorStop(1,'#CC1100');
+  ctx.beginPath();
+  ctx.ellipse(0, 10*s, 45*s, 65*s, 0, 0, Math.PI*2);
+  ctx.fillStyle=bodyGrad; ctx.fill();
+  ctx.strokeStyle='#AA1100'; ctx.lineWidth=2*s; ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // 身体纹路
+  ctx.strokeStyle='rgba(200,50,0,0.4)'; ctx.lineWidth=1.5*s;
+  [-25,-10,5,20,35].forEach(y=>{
+    ctx.beginPath();
+    ctx.ellipse(0, y*s, 38*s, 8*s, 0, Math.PI, Math.PI*2);
+    ctx.stroke();
+  });
+
+  // 大钳子-左
+  drawClaw(ctx, -55*s, -20*s, -0.4, s, true);
+  // 大钳子-右（举奖杯）
+  drawClaw(ctx, 55*s, -35*s, 0.4, s, false);
+
+  // 奖杯（右钳子旁）
+  drawTrophy(ctx, 78*s, -70*s, s*0.7);
+
+  // 小腿
+  const legs=[[-38,-5],[-42,12],[-40,28],[38,-5],[42,12],[40,28]];
+  legs.forEach(([lx,ly])=>{
+    ctx.save(); ctx.translate(lx*s, ly*s);
+    const dir=lx<0?-1:1;
+    ctx.beginPath(); ctx.moveTo(0,0);
+    ctx.quadraticCurveTo(dir*20*s, 10*s, dir*28*s, 22*s);
+    ctx.strokeStyle='#CC2200'; ctx.lineWidth=3*s; ctx.lineCap='round'; ctx.stroke();
+    // 小爪
+    ctx.beginPath(); ctx.arc(dir*28*s, 22*s, 4*s, 0, Math.PI*2);
+    ctx.fillStyle='#FF4422'; ctx.fill();
+    ctx.restore();
+  });
+
+  // 头部
+  const headG=ctx.createRadialGradient(-10*s,-70*s,5*s,0,-65*s,40*s);
+  headG.addColorStop(0,'#FF6644'); headG.addColorStop(1,'#DD2200');
+  ctx.beginPath();
+  ctx.ellipse(0, -65*s, 38*s, 32*s, 0, 0, Math.PI*2);
+  ctx.fillStyle=headG; ctx.fill();
+  ctx.strokeStyle='#AA1100'; ctx.lineWidth=2*s; ctx.stroke();
+
+  // 眼睛
+  [[-16,-70],[16,-70]].forEach(([ex,ey])=>{
+    // 眼白
+    ctx.beginPath(); ctx.arc(ex*s, ey*s, 10*s, 0, Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#AA1100'; ctx.lineWidth=1.5*s; ctx.stroke();
+    // 眼珠
+    ctx.beginPath(); ctx.arc((ex+2)*s, (ey+1)*s, 5*s, 0, Math.PI*2);
+    ctx.fillStyle='#222'; ctx.fill();
+    // 高光
+    ctx.beginPath(); ctx.arc((ex+3.5)*s, (ey-1)*s, 2*s, 0, Math.PI*2);
+    ctx.fillStyle='#fff'; ctx.fill();
+  });
+
+  // 笑脸
+  ctx.beginPath();
+  ctx.arc(0, -60*s, 12*s, 0.2, Math.PI-0.2);
+  ctx.strokeStyle='#AA1100'; ctx.lineWidth=2.5*s; ctx.lineCap='round'; ctx.stroke();
+
+  // 触须
+  [[-20,-80],[20,-80]].forEach(([ax,ay])=>{
+    const dir=ax<0?-1:1;
+    ctx.beginPath(); ctx.moveTo(ax*s, ay*s);
+    ctx.bezierCurveTo(ax*s+dir*20*s, (ay-25)*s, ax*s+dir*40*s, (ay-40)*s, ax*s+dir*55*s, (ay-30)*s);
+    ctx.strokeStyle='#CC2200'; ctx.lineWidth=2*s; ctx.lineCap='round'; ctx.stroke();
+  });
+
+  // 皇冠
+  drawCrown(ctx, 0, -105*s, s);
+
+  ctx.restore();
+}
+
+function drawClaw(ctx, x, y, rot, s, isLeft) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  // 大臂
+  const cg=ctx.createLinearGradient(0,0,0,40*s);
+  cg.addColorStop(0,'#FF5522'); cg.addColorStop(1,'#CC2200');
+  ctx.beginPath(); ctx.ellipse(0, 20*s, 12*s, 28*s, 0, 0, Math.PI*2);
+  ctx.fillStyle=cg; ctx.fill();
+  ctx.strokeStyle='#AA1100'; ctx.lineWidth=1.5*s; ctx.stroke();
+  // 钳
+  ctx.beginPath();
+  ctx.ellipse(-8*s, -8*s, 14*s, 10*s, -0.5, 0, Math.PI*2);
+  ctx.fillStyle='#FF4422'; ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(8*s, -8*s, 14*s, 10*s, 0.5, 0, Math.PI*2);
+  ctx.fillStyle='#EE3311'; ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawTrophy(ctx, x, y, s) {
+  ctx.save(); ctx.translate(x, y);
+  // 杯身
+  const tg=ctx.createLinearGradient(-18*s,0,18*s,0);
+  tg.addColorStop(0,'#B8860B'); tg.addColorStop(0.3,'#FFD700');
+  tg.addColorStop(0.7,'#FFE566'); tg.addColorStop(1,'#B8860B');
+  ctx.beginPath();
+  ctx.moveTo(-18*s, 0); ctx.lineTo(-22*s, -45*s);
+  ctx.quadraticCurveTo(-22*s, -55*s, 0, -55*s);
+  ctx.quadraticCurveTo(22*s, -55*s, 22*s, -45*s);
+  ctx.lineTo(18*s, 0); ctx.closePath();
+  ctx.fillStyle=tg; ctx.fill();
+  ctx.strokeStyle='#B8860B'; ctx.lineWidth=1.5*s; ctx.stroke();
+  // 底座
+  ctx.fillStyle='#DAA520';
+  ctx.fillRect(-20*s, 0, 40*s, 8*s);
+  ctx.fillRect(-14*s, 8*s, 28*s, 7*s);
+  ctx.strokeStyle='#B8860B'; ctx.lineWidth=1.5*s; ctx.strokeRect(-14*s,8*s,28*s,7*s);
+  // 把手
+  [[-22,0],  [22, 0]].forEach(([hx,hy])=>{
+    const dir=hx<0?-1:1;
+    ctx.beginPath(); ctx.arc(hx*s, (hy-22)*s, 10*s, Math.PI*0.2, Math.PI*1.8, hx>0);
+    ctx.strokeStyle='#DAA520'; ctx.lineWidth=4*s; ctx.stroke();
+  });
+  // 星星
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.font=`${18*s}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('★', 0, -28*s);
+  ctx.restore();
+}
+
+function drawCrown(ctx, x, y, s) {
+  ctx.save(); ctx.translate(x, y);
+  const cg=ctx.createLinearGradient(-30*s,-30*s,30*s,0);
+  cg.addColorStop(0,'#B8860B'); cg.addColorStop(0.5,'#FFD700'); cg.addColorStop(1,'#B8860B');
+  ctx.fillStyle=cg;
+  ctx.beginPath();
+  ctx.moveTo(-28*s, 0);
+  ctx.lineTo(-28*s, -18*s);
+  ctx.lineTo(-16*s, -8*s);
+  ctx.lineTo(-8*s, -28*s);
+  ctx.lineTo(0, -15*s);
+  ctx.lineTo(8*s, -28*s);
+  ctx.lineTo(16*s, -8*s);
+  ctx.lineTo(28*s, -18*s);
+  ctx.lineTo(28*s, 0); ctx.closePath();
+  ctx.fill(); ctx.strokeStyle='#B8860B'; ctx.lineWidth=1.5*s; ctx.stroke();
+  // 宝石
+  [[0,-22],[-14,-10],[14,-10]].forEach(([gx,gy],i)=>{
+    const colors=['#FF3366','#3399FF','#33CC66'];
+    ctx.beginPath(); ctx.arc(gx*s, gy*s, 4*s, 0, Math.PI*2);
+    ctx.fillStyle=colors[i]; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=s; ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// ── 装饰海鲜（两侧）──
+function drawSeaDecos() {
+  // 左侧虾尾
+  ctx.save(); ctx.translate(95, 290); ctx.rotate(-0.3);
+  drawMiniShrimp(ctx, 0.5);
+  ctx.restore();
+  // 右侧生蚝
+  ctx.save(); ctx.translate(700, 280); ctx.rotate(0.3);
+  drawOyster(ctx, 0.55);
+  ctx.restore();
+  // 左下海星
+  ctx.save(); ctx.translate(110, 430);
+  drawSeaStar(ctx, 0.5);
+  ctx.restore();
+  // 右下珊瑚
+  ctx.save(); ctx.translate(690, 420);
+  drawCoral(ctx, 0.5);
+  ctx.restore();
+}
+
+function drawMiniShrimp(ctx, s) {
+  ctx.fillStyle='#FF5533';
+  ctx.beginPath(); ctx.ellipse(0,0,18*s,30*s,0.4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#CC2200'; ctx.lineWidth=1.5*s; ctx.stroke();
+  // 小眼
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(-5*s,-22*s,3*s,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5*s,-22*s,3*s,0,Math.PI*2); ctx.fill();
+}
+
+function drawOyster(ctx, s) {
+  // 贝壳
+  const og=ctx.createRadialGradient(0,0,2*s,0,8*s,28*s);
+  og.addColorStop(0,'#E8D5A3'); og.addColorStop(1,'#C4A35A');
+  ctx.fillStyle=og;
+  ctx.beginPath(); ctx.ellipse(0,5*s,28*s,20*s,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#A0824A'; ctx.lineWidth=2*s; ctx.stroke();
+  // 纹路
+  for(let i=-20;i<=20;i+=10){
+    ctx.beginPath(); ctx.moveTo(0,-8*s);
+    ctx.quadraticCurveTo(i*s,0,i*s,18*s);
+    ctx.strokeStyle='rgba(160,130,74,0.4)'; ctx.lineWidth=s; ctx.stroke();
+  }
+}
+
+function drawSeaStar(ctx, s) {
+  ctx.fillStyle='#FF8C42';
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a=i*Math.PI*2/5-Math.PI/2;
+    const b=a+Math.PI/5;
+    i===0?ctx.moveTo(Math.cos(a)*24*s,Math.sin(a)*24*s):ctx.lineTo(Math.cos(a)*24*s,Math.sin(a)*24*s);
+    ctx.lineTo(Math.cos(b)*10*s,Math.sin(b)*10*s);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#E05A00'; ctx.lineWidth=2*s; ctx.stroke();
+}
+
+function drawCoral(ctx, s) {
+  ctx.fillStyle='#FF6B6B';
+  [[0,0],[0,-20],[-12,-10],[12,-10],[-8,-30],[8,-30]].forEach(([x,y],i)=>{
+    ctx.beginPath(); ctx.arc(x*s,y*s,7*s,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#CC3333'; ctx.lineWidth=1.5*s; ctx.stroke();
+    if(i>0){
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(x*s,(y+8)*s);
+      ctx.strokeStyle='#FF6B6B'; ctx.lineWidth=3*s; ctx.stroke();
+    }
+  });
+}
+
+// ── 底部文字 ──
+function drawBottom(name, week) {
+  // 分隔线
+  const lg=ctx.createLinearGradient(60,0,W-60,0);
+  lg.addColorStop(0,'rgba(184,134,11,0)');
+  lg.addColorStop(0.2,'#DAA520');
+  lg.addColorStop(0.8,'#DAA520');
+  lg.addColorStop(1,'rgba(184,134,11,0)');
+  ctx.strokeStyle=lg; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(60,488); ctx.lineTo(W-60,488); ctx.stroke();
+
+  // 红色底板
+  const bpg=ctx.createLinearGradient(60,492,W-60,542);
+  bpg.addColorStop(0,'rgba(180,0,0,0.85)');
+  bpg.addColorStop(1,'rgba(140,0,0,0.85)');
+  ctx.fillStyle=bpg;
+  roundRect(ctx,60,492,W-120,50,10); ctx.fill();
+  ctx.strokeStyle='rgba(255,215,0,0.5)'; ctx.lineWidth=1.5;
+  roundRect(ctx,60,492,W-120,50,10); ctx.stroke();
+
+  // 获奖人
+  ctx.font='bold 16px Microsoft YaHei';
+  ctx.fillStyle='rgba(255,215,0,0.75)';
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('获奖人：', 85, 517);
+  ctx.font='bold 22px Microsoft YaHei';
+  const ng=ctx.createLinearGradient(0,505,0,530);
+  ng.addColorStop(0,'#FFE566'); ng.addColorStop(1,'#FFD700');
+  ctx.fillStyle=ng;
+  ctx.shadowColor='rgba(0,0,0,0.3)'; ctx.shadowBlur=3;
+  ctx.fillText(name, 152, 517);
+  ctx.shadowBlur=0;
+
+  // 第X周
+  ctx.font='bold 13px Microsoft YaHei';
+  ctx.fillStyle='rgba(255,220,100,0.7)';
+  ctx.textAlign='left';
+  ctx.fillText(`第 ${week} 周`, 85, 537);
+
+  // 荣誉描述
+  ctx.font='bold 15px Microsoft YaHei';
+  ctx.fillStyle='rgba(255,215,0,0.85)';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillText('荣誉授予：本周最会吃虾的你 🦞', W-85, 517);
+
+  // 最下方
+  ctx.font='bold 12px Microsoft YaHei';
+  ctx.fillStyle='rgba(255,180,0,0.6)';
+  ctx.textAlign='right';
+  ctx.fillText('2026年度虾厂争霸赛', W-85, 534);
+
+  // 底部横线
+  ctx.strokeStyle=lg; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(60,548); ctx.lineTo(W-60,548); ctx.stroke();
+}
+
+function download() {
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  const name=document.getElementById('nameInput').value.trim()||'MVP';
+  const week=document.getElementById('weekInput').value||'1';
+  a.download=`虾王MVP_第${week}周_${name}.png`;
+  a.click();
+}
+
+// ── 主渲染 ──
+function render() {
+  const name=document.getElementById('nameInput').value.trim()||'______';
+  const week=document.getElementById('weekInput').value||'1';
+  ctx.clearRect(0,0,W,H);
+
+  // 背景
+  const bg=ctx.createRadialGradient(W/2,H/2,50,W/2,H/2,W*0.75);
+  bg.addColorStop(0,'#FFF9E6'); bg.addColorStop(0.4,'#FFF0C0');
+  bg.addColorStop(0.8,'#FFE080'); bg.addColorStop(1,'#FFB800');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const glow=ctx.createRadialGradient(W/2,H*0.42,20,W/2,H*0.42,260);
+  glow.addColorStop(0,'rgba(255,255,255,0.5)'); glow.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+
+  drawBorder();
+  drawDecoStars();
+  drawSeaDecos();
+  drawLobster(W/2, H*0.43, 170);
+  drawTitle();
+  drawBottom(name, week);
+}
+
+render();
+</script>
+</body>
+</html>
