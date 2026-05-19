@@ -5,267 +5,253 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🦞 龙虾周周MVP福利抽奖</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  min-height:100vh;
+  background: radial-gradient(ellipse at top, #1a1a2e 0%, #0d0d1a 100%);
+  font-family:'Microsoft YaHei',sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+  padding:24px 16px 40px; overflow-x:hidden;
+}
+.stars {
+  position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,.4) 0%,transparent 100%),
+    radial-gradient(1px 1px at 55% 12%, rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 82% 55%, rgba(255,255,255,.35) 0%,transparent 100%),
+    radial-gradient(1px 1px at 38% 78%, rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 8%  68%, rgba(255,255,255,.3) 0%,transparent 100%),
+    radial-gradient(1px 1px at 92% 38%, rgba(255,255,255,.2) 0%,transparent 100%),
+    radial-gradient(1px 1px at 65% 90%, rgba(255,255,255,.25) 0%,transparent 100%),
+    radial-gradient(1px 1px at 28% 50%, rgba(255,255,255,.2) 0%,transparent 100%);
+}
+.confetti { position:fixed; top:-10px; pointer-events:none; z-index:999; animation:fall linear forwards; }
+@keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:0; } }
 
-  body {
-    min-height: 100vh;
-    background: radial-gradient(ellipse at top, #1a1a2e 0%, #0d0d1a 100%);
-    font-family: 'Microsoft YaHei', sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 30px 20px 40px;
-    overflow-x: hidden;
-  }
+h1 {
+  position:relative; z-index:1;
+  color:#FFD700; font-size:1.75rem; text-align:center;
+  margin-bottom:4px;
+  text-shadow:0 0 30px rgba(255,215,0,.7), 0 2px 4px rgba(0,0,0,.5);
+  letter-spacing:3px;
+}
+.subtitle {
+  position:relative; z-index:1;
+  color:rgba(255,215,0,.55); font-size:.82rem;
+  margin-bottom:20px; letter-spacing:4px;
+}
 
-  /* 星星背景 */
-  .stars {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 60% 15%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.35) 0%, transparent 100%),
-      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.25) 0%, transparent 100%),
-      radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.2) 0%, transparent 100%);
-  }
+/* 模式切换 */
+.mode-tabs {
+  position:relative; z-index:1;
+  display:flex; gap:10px; margin-bottom:24px;
+}
+.mode-tab {
+  padding:9px 24px; border-radius:20px;
+  border:1.5px solid rgba(255,215,0,.25);
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.5); font-size:.9rem; font-weight:600;
+  cursor:pointer; transition:all .2s; letter-spacing:1px;
+}
+.mode-tab.active {
+  background:linear-gradient(135deg,#FFD700,#FFA500);
+  color:#1a1a2e; border-color:transparent;
+  box-shadow:0 4px 16px rgba(255,215,0,.4);
+}
 
-  /* 彩屑 */
-  .confetti {
-    position: fixed; top: -10px; pointer-events: none; z-index: 999;
-    animation: fall linear forwards;
-  }
-  @keyframes fall {
-    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-  }
+/* 输入区 */
+.input-area {
+  position:relative; z-index:1;
+  width:100%; max-width:380px;
+  display:flex; gap:10px; margin-bottom:20px;
+}
+.name-input {
+  flex:1; background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,215,0,.3); border-radius:12px;
+  padding:12px 18px; color:#fff; font-size:1rem;
+  outline:none; transition:border-color .2s;
+}
+.name-input:focus { border-color:#FFD700; background:rgba(255,255,255,.12); }
+.name-input::placeholder { color:rgba(255,255,255,.3); }
+.btn-draw {
+  background:linear-gradient(135deg,#FFD700,#FFA500);
+  color:#1a1a2e; border:none; border-radius:12px;
+  padding:12px 22px; font-size:1rem; font-weight:700;
+  cursor:pointer; white-space:nowrap;
+  box-shadow:0 4px 16px rgba(255,215,0,.4); transition:all .2s;
+}
+.btn-draw:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 6px 24px rgba(255,215,0,.6); }
+.btn-draw:disabled { opacity:.4; cursor:not-allowed; transform:none; }
 
-  h1 {
-    position: relative; z-index: 1;
-    color: #FFD700;
-    font-size: 1.8rem;
-    text-align: center;
-    margin-bottom: 6px;
-    text-shadow: 0 0 30px rgba(255,215,0,0.7), 0 2px 4px rgba(0,0,0,0.5);
-    letter-spacing: 3px;
-  }
-  .subtitle {
-    position: relative; z-index: 1;
-    color: rgba(255,215,0,0.5);
-    font-size: 0.82rem;
-    margin-bottom: 32px;
-    letter-spacing: 3px;
-  }
+/* ════ 转盘模式 ════ */
+#wheelMode { display:flex; flex-direction:column; align-items:center; position:relative; z-index:1; width:100%; }
+.pointer { width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:28px solid #FFD700; filter:drop-shadow(0 2px 8px rgba(255,215,0,.8)); margin-bottom:-4px; z-index:10; position:relative; }
+.wheel-canvas-wrap { position:relative; width:320px; height:320px; }
+canvas#wheelCanvas { border-radius:50%; box-shadow:0 0 40px rgba(255,215,0,.3),0 0 80px rgba(255,165,0,.15); display:block; }
+.wheel-center-btn {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:64px; height:64px; border-radius:50%;
+  background:linear-gradient(135deg,#FFD700,#FFA500);
+  border:4px solid #fff; box-shadow:0 0 20px rgba(255,215,0,.6),0 4px 12px rgba(0,0,0,.4);
+  cursor:pointer; font-size:1rem; display:flex; align-items:center; justify-content:center;
+  transition:all .2s; z-index:5; color:#1a1a2e; font-weight:900; letter-spacing:0;
+}
+.wheel-center-btn:hover:not(:disabled) { transform:translate(-50%,-50%) scale(1.08); box-shadow:0 0 30px rgba(255,215,0,.9); }
+.wheel-center-btn:disabled { opacity:.6; cursor:not-allowed; transform:translate(-50%,-50%); }
 
-  /* 转盘容器 */
-  .wheel-wrap {
-    position: relative; z-index: 1;
-    display: flex; flex-direction: column; align-items: center;
-    margin-bottom: 28px;
-  }
+/* 奖品预览 */
+.prize-legend {
+  width:100%; max-width:360px; margin-top:20px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; padding:14px 16px;
+}
+.prize-legend h4 { color:rgba(255,215,0,.6); font-size:.78rem; letter-spacing:2px; margin-bottom:10px; }
+.prize-legend-list { list-style:none; }
+.prize-legend-list li {
+  display:flex; align-items:center; gap:8px;
+  padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:.82rem;
+}
+.prize-legend-list li:last-child { border-bottom:none; }
+.pl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.pl-name { color:rgba(255,255,255,.8); flex:1; }
+.pl-sub { color:rgba(255,255,255,.35); font-size:.75rem; }
+.pl-remain { color:rgba(255,215,0,.5); font-size:.75rem; margin-left:4px; }
 
-  /* 指针 */
-  .pointer {
-    width: 0; height: 0;
-    border-left: 14px solid transparent;
-    border-right: 14px solid transparent;
-    border-top: 28px solid #FFD700;
-    filter: drop-shadow(0 2px 8px rgba(255,215,0,0.8));
-    margin-bottom: -4px;
-    z-index: 10;
-    position: relative;
-  }
+/* ════ 搓搓乐模式 ════ */
+#scratchMode { display:none; flex-direction:column; align-items:center; position:relative; z-index:1; width:100%; }
+.scratch-cards-grid {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:12px; width:100%; max-width:380px; margin-bottom:16px;
+}
+.scratch-card-wrap { position:relative; aspect-ratio:1; cursor:pointer; }
+.scratch-card-back {
+  position:absolute; inset:0; border-radius:14px;
+  background:linear-gradient(135deg,#2c3e6a,#1a2a50);
+  border:1.5px solid rgba(255,215,0,.2);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:2rem; color:rgba(255,255,255,.15);
+  transition:all .3s;
+  user-select:none;
+}
+.scratch-card-back:hover { border-color:rgba(255,215,0,.5); background:linear-gradient(135deg,#34487a,#223060); }
+.scratch-card-front {
+  position:absolute; inset:0; border-radius:14px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; padding:8px; text-align:center;
+  opacity:0; transform:scale(.8); transition:all .4s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none;
+}
+.scratch-card-front.revealed { opacity:1; transform:scale(1); pointer-events:none; }
+.scratch-card-front .sc-emoji { font-size:2rem; }
+.scratch-card-front .sc-name { color:#FFD700; font-size:.7rem; font-weight:700; line-height:1.3; }
+.scratch-card-wrap.done .scratch-card-back { opacity:0; pointer-events:none; }
+.scratch-hint { color:rgba(255,255,255,.3); font-size:.82rem; letter-spacing:1px; margin-bottom:8px; }
+.btn-new-cards {
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.6); border-radius:10px; padding:9px 22px;
+  font-size:.85rem; cursor:pointer; transition:all .2s; margin-top:8px;
+}
+.btn-new-cards:hover { background:rgba(255,255,255,.14); color:#fff; }
 
-  /* 转盘 */
-  .wheel-canvas-wrap {
-    position: relative;
-    width: 320px; height: 320px;
-  }
-  canvas#wheelCanvas {
-    border-radius: 50%;
-    box-shadow: 0 0 40px rgba(255,215,0,0.3), 0 0 80px rgba(255,165,0,0.15);
-    display: block;
-  }
-  .wheel-center-btn {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 64px; height: 64px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    border: 4px solid #fff;
-    box-shadow: 0 0 20px rgba(255,215,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
-    cursor: pointer;
-    font-size: 1.6rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    z-index: 5;
-    color: #fff;
-    font-weight: 900;
-  }
-  .wheel-center-btn:hover:not(:disabled) {
-    transform: translate(-50%, -50%) scale(1.08);
-    box-shadow: 0 0 30px rgba(255,215,0,0.9);
-  }
-  .wheel-center-btn:disabled {
-    opacity: 0.6; cursor: not-allowed;
-    transform: translate(-50%, -50%);
-  }
+/* 历史记录 */
+.history {
+  position:relative; z-index:1;
+  width:100%; max-width:380px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px; padding:16px 18px; margin-top:20px;
+}
+.history-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.history h3 { color:#FFD700; font-size:.88rem; letter-spacing:2px; }
+.btn-reset { background:none; border:1px solid rgba(255,80,80,.3); color:rgba(255,100,100,.7); border-radius:8px; padding:4px 12px; font-size:.72rem; cursor:pointer; transition:all .2s; }
+.btn-reset:hover { border-color:#ff6060; color:#ff6060; }
+.history-list { list-style:none; max-height:180px; overflow-y:auto; }
+.history-list li { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.05); font-size:.82rem; }
+.history-list li:last-child { border-bottom:none; }
+.h-num { color:#444; min-width:20px; font-size:.72rem; }
+.h-name { color:#fff; font-weight:600; flex:1; }
+.h-prize { color:#FFD700; font-size:.78rem; text-align:right; }
+.empty-history { color:#444; font-size:.8rem; text-align:center; padding:10px 0; }
 
-  /* 输入区 */
-  .input-area {
-    position: relative; z-index: 1;
-    width: 100%; max-width: 360px;
-    display: flex; gap: 10px;
-    margin-bottom: 16px;
-  }
-  .name-input {
-    flex: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1.5px solid rgba(255,215,0,0.3);
-    border-radius: 12px;
-    padding: 12px 18px;
-    color: #fff; font-size: 1rem;
-    outline: none; transition: border-color 0.2s;
-  }
-  .name-input:focus { border-color: #FFD700; background: rgba(255,255,255,0.12); }
-  .name-input::placeholder { color: rgba(255,255,255,0.3); }
+/* 弹窗 */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(5px); }
+.modal-overlay.show { display:flex; }
+.modal { background:linear-gradient(135deg,#1e1e3a,#16213e); border:2px solid rgba(255,215,0,.4); border-radius:24px; padding:36px 32px; text-align:center; max-width:340px; width:90%; box-shadow:0 0 60px rgba(255,215,0,.2); animation:modalIn .4s cubic-bezier(.34,1.56,.64,1); }
+@keyframes modalIn { from{opacity:0;transform:scale(.6) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-emoji { font-size:3.8rem; display:block; margin-bottom:10px; }
+.modal-title { color:rgba(255,215,0,.6); font-size:.82rem; letter-spacing:2px; margin-bottom:6px; }
+.modal-prize { color:#FFD700; font-size:1.5rem; font-weight:700; margin-bottom:6px; line-height:1.3; }
+.modal-sub { color:rgba(255,255,255,.45); font-size:.82rem; margin-bottom:10px; }
+.modal-winner { color:rgba(255,255,255,.7); font-size:.95rem; margin-bottom:16px; }
+.modal-winner span { color:#fff; font-weight:700; }
+.modal-tip { color:rgba(255,255,255,.35); font-size:.75rem; margin-bottom:24px; border-top:1px solid rgba(255,255,255,.08); padding-top:12px; letter-spacing:1px; }
+.modal-tip strong { color:rgba(255,215,0,.65); }
+.btn-close { background:linear-gradient(135deg,#FFD700,#FFA500); color:#1a1a2e; border:none; border-radius:12px; padding:11px 38px; font-size:.95rem; font-weight:700; cursor:pointer; transition:all .2s; }
+.btn-close:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(255,215,0,.5); }
 
-  .btn-draw {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #1a1a2e;
-    border: none; border-radius: 12px;
-    padding: 12px 22px;
-    font-size: 1rem; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(255,215,0,0.4);
-    transition: all 0.2s;
-  }
-  .btn-draw:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,215,0,0.6); }
-  .btn-draw:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-  /* 结果弹窗 */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.75);
-    z-index: 100;
-    align-items: center; justify-content: center;
-    backdrop-filter: blur(4px);
-  }
-  .modal-overlay.show { display: flex; }
-  .modal {
-    background: linear-gradient(135deg, #1e1e3a, #16213e);
-    border: 2px solid rgba(255,215,0,0.4);
-    border-radius: 24px;
-    padding: 40px 36px;
-    text-align: center;
-    max-width: 360px; width: 90%;
-    box-shadow: 0 0 60px rgba(255,215,0,0.2);
-    animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.6) translateY(30px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  .modal-emoji { font-size: 4rem; display: block; margin-bottom: 12px; }
-  .modal-prize { color: #FFD700; font-size: 1.6rem; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
-  .modal-winner { color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 16px; }
-  .modal-winner span { color: #fff; font-weight: 700; }
-  .modal-tip { color: rgba(255,255,255,0.4); font-size: 0.78rem; margin-bottom: 28px; letter-spacing: 1px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px; }
-  .btn-close {
-    background: linear-gradient(135deg, #FFD700, #FFA500);
-    color: #1a1a2e; border: none; border-radius: 12px;
-    padding: 12px 40px; font-size: 1rem; font-weight: 700;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .btn-close:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(255,215,0,0.5); }
-
-  /* 历史记录 */
-  .history {
-    position: relative; z-index: 1;
-    width: 100%; max-width: 360px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 18px 20px;
-  }
-  .history-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 12px;
-  }
-  .history h3 { color: #FFD700; font-size: 0.9rem; letter-spacing: 2px; }
-  .btn-reset {
-    background: none; border: 1px solid rgba(255,80,80,0.3);
-    color: rgba(255,100,100,0.7); border-radius: 8px;
-    padding: 4px 12px; font-size: 0.75rem; cursor: pointer;
-    transition: all 0.2s;
-  }
-  .btn-reset:hover { border-color: #ff6060; color: #ff6060; }
-
-  .history-list { list-style: none; max-height: 200px; overflow-y: auto; }
-  .history-list li {
-    display: flex; align-items: center; gap: 10px;
-    padding: 7px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    font-size: 0.85rem;
-  }
-  .history-list li:last-child { border-bottom: none; }
-  .h-num { color: #444; min-width: 20px; font-size: 0.75rem; }
-  .h-name { color: #fff; font-weight: 600; flex: 1; }
-  .h-prize { color: #FFD700; font-size: 0.82rem; text-align: right; }
-  .empty-history { color: #444; font-size: 0.82rem; text-align: center; padding: 12px 0; }
-
-  .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-    background: rgba(255,215,0,0.95); color: #1a1a2e;
-    padding: 10px 24px; border-radius: 30px;
-    font-weight: 700; font-size: 0.9rem;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.3s; z-index: 1000;
-  }
-  .toast.show { opacity: 1; }
+.toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); background:rgba(255,215,0,.95); color:#1a1a2e; padding:10px 22px; border-radius:30px; font-weight:700; font-size:.88rem; opacity:0; pointer-events:none; transition:opacity .3s; z-index:1000; }
+.toast.show { opacity:1; }
 </style>
 </head>
 <body>
 <div class="stars"></div>
 
 <h1>🦞 龙虾周周MVP福利抽奖</h1>
-<p class="subtitle">周周优秀 · 好礼相送 · 恭喜获奖~</p>
+<p class="subtitle">虾王加冕・荣誉到手・实力认证</p>
 
-<!-- 输入区 -->
-<div class="input-area">
-  <input class="name-input" id="nameInput" type="text" placeholder="✏️ 输入获奖者姓名" maxlength="20">
-  <button class="btn-draw" id="drawBtn" onclick="startSpin()">抽奖</button>
+<!-- 模式切换 -->
+<div class="mode-tabs">
+  <div class="mode-tab active" id="tabWheel" onclick="switchMode('wheel')">🎡 大转盘</div>
+  <div class="mode-tab" id="tabScratch" onclick="switchMode('scratch')">🎴 搓搓乐</div>
 </div>
 
-<!-- 转盘 -->
-<div class="wheel-wrap">
+<!-- 输入姓名 -->
+<div class="input-area">
+  <input class="name-input" id="nameInput" type="text" placeholder="✏️ 输入获奖者姓名" maxlength="20">
+  <button class="btn-draw" id="drawBtn" onclick="onDraw()">抽奖</button>
+</div>
+
+<!-- 转盘模式 -->
+<div id="wheelMode">
   <div class="pointer"></div>
   <div class="wheel-canvas-wrap">
     <canvas id="wheelCanvas" width="320" height="320"></canvas>
-    <button class="wheel-center-btn" id="centerBtn" onclick="startSpin()">GO</button>
+    <button class="wheel-center-btn" id="centerBtn" onclick="onDraw()">GO!</button>
+  </div>
+  <!-- 奖品预览 -->
+  <div class="prize-legend">
+    <h4>🎁 奖品一览</h4>
+    <ul class="prize-legend-list" id="prizeLegend"></ul>
   </div>
 </div>
 
-<!-- 中奖历史 -->
+<!-- 搓搓乐模式 -->
+<div id="scratchMode">
+  <p class="scratch-hint">👆 点击卡片，翻开你的运气</p>
+  <div class="scratch-cards-grid" id="scratchGrid"></div>
+  <button class="btn-new-cards" onclick="buildScratchCards()">🔀 换一批卡片</button>
+</div>
+
+<!-- 历史记录 -->
 <div class="history">
   <div class="history-header">
     <h3>🏆 中奖记录</h3>
     <button class="btn-reset" onclick="resetAll()">重置</button>
   </div>
-  <ul class="history-list" id="historyList">
-    <li class="empty-history">暂无记录</li>
-  </ul>
+  <ul class="history-list" id="historyList"><li class="empty-history">暂无记录</li></ul>
 </div>
 
-<!-- 结果弹窗 -->
+<!-- 弹窗 -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <span class="modal-emoji" id="modalEmoji">🎁</span>
-    <div class="modal-prize" id="modalPrize"></div>
-    <div class="modal-winner" id="modalWinner"></div>
-    <div class="modal-tip">📌 请在 7 天内找 <strong style="color:rgba(255,215,0,0.7)">青黛</strong> 兑换奖品</div>
+    <span class="modal-emoji" id="mEmoji"></span>
+    <div class="modal-title">🎉 恭喜获得</div>
+    <div class="modal-prize" id="mPrize"></div>
+    <div class="modal-sub" id="mSub"></div>
+    <div class="modal-winner" id="mWinner"></div>
+    <div class="modal-tip">📌 请在 7 天内找 <strong>青黛</strong> 兑换奖品</div>
     <button class="btn-close" onclick="closeModal()">🎉 太棒了！</button>
   </div>
 </div>
@@ -275,252 +261,252 @@
 <script>
 // ── 奖品配置 ──
 const PRIZES = [
-  { emoji: '🎬', name: '双人电影通兑票', total: 2 },
-  { emoji: '🦞', name: '鲜活波士顿龙虾', total: 1 },
-  { emoji: '🦐', name: '捞汁海鲜桶',     total: 1 },
-  { emoji: '🍗', name: '肯德基超级全家桶', total: 1 },
-  { emoji: '🌶️', name: '大份熟食小龙虾', total: 1 },
-  { emoji: '☕', name: '咖啡券',          total: 7 },
-  { emoji: '🧋', name: '奶茶券',          total: 7 },
+  { id:1, emoji:'🎬', name:'光影出逃',   sub:'双人电影通兑票 2 张',  total:2, color:'#c0392b' },
+  { id:2, emoji:'🌶️', name:'虾趣狂嗨',  sub:'大份熟食小龙虾 1 份',  total:1, color:'#e74c3c' },
+  { id:3, emoji:'☕', name:'七日醒神',   sub:'七日咖啡券 1 份',       total:7, color:'#8e44ad' },
+  { id:4, emoji:'🧋', name:'甜饮续命',   sub:'七日奶茶券 1 份',       total:7, color:'#2980b9' },
+  { id:5, emoji:'🍗', name:'狂炫盛宴',   sub:'肯德基超级全家桶 1 份', total:1, color:'#e67e22' },
+  { id:6, emoji:'🦐', name:'海捞狂吃',   sub:'捞汁海鲜桶 1 份',       total:1, color:'#16a085' },
+  { id:7, emoji:'🦞', name:'巨虾顶配',   sub:'波士顿龙虾 1 份(500g)', total:1, color:'#f39c12' },
 ];
 
-// 转盘颜色
-const COLORS = [
-  '#c0392b','#e67e22','#f1c40f','#27ae60',
-  '#16a085','#2980b9','#8e44ad','#d35400',
-];
-
-// ── 状态 ──
-let prizes = JSON.parse(localStorage.getItem('lp_prizes') || 'null')
-  || PRIZES.map(p => ({ ...p, remaining: p.total }));
-let history = JSON.parse(localStorage.getItem('lp_history') || '[]');
+let prizes = JSON.parse(localStorage.getItem('lp2_prizes')||'null') || PRIZES.map(p=>({...p,remaining:p.total}));
+let history = JSON.parse(localStorage.getItem('lp2_history')||'[]');
 let isSpinning = false;
 let currentAngle = 0;
+let currentMode = 'wheel';
 
 const canvas = document.getElementById('wheelCanvas');
 const ctx = canvas.getContext('2d');
-const SIZE = 320;
-const R = SIZE / 2;
+const R = 160;
 
-// ── 画转盘 ──
-function drawWheel(rotateAngle = 0) {
-  const available = prizes.filter(p => p.remaining > 0);
-  if (available.length === 0) {
-    ctx.clearRect(0, 0, SIZE, SIZE);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.beginPath(); ctx.arc(R, R, R - 2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#888';
-    ctx.font = 'bold 18px Microsoft YaHei';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('奖品已全部抽完', R, R);
-    return;
-  }
-
-  const total = available.reduce((s, p) => s + p.remaining, 0);
-  let startAngle = rotateAngle;
-
-  available.forEach((p, i) => {
-    const slice = (p.remaining / total) * Math.PI * 2;
-    const endAngle = startAngle + slice;
-    const mid = startAngle + slice / 2;
-
-    // 扇形
-    ctx.beginPath();
-    ctx.moveTo(R, R);
-    ctx.arc(R, R, R - 2, startAngle, endAngle);
-    ctx.closePath();
-    ctx.fillStyle = COLORS[i % COLORS.length];
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // emoji
-    ctx.save();
-    ctx.translate(R, R);
-    ctx.rotate(mid);
-    ctx.font = `${R * 0.16}px Arial`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(p.emoji, R * 0.58, 0);
-    ctx.restore();
-
-    startAngle = endAngle;
-  });
-
-  // 外圈
-  ctx.beginPath();
-  ctx.arc(R, R, R - 2, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,215,0,0.5)';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // 中心圆（避免被按钮遮挡时留空）
-  ctx.beginPath();
-  ctx.arc(R, R, 36, 0, Math.PI * 2);
-  ctx.fillStyle = '#0d0d1a';
-  ctx.fill();
+// ── 工具 ──
+function getAvailable() { return prizes.filter(p=>p.remaining>0); }
+function saveState() { localStorage.setItem('lp2_prizes',JSON.stringify(prizes)); localStorage.setItem('lp2_history',JSON.stringify(history)); }
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+function checkName() {
+  const n=document.getElementById('nameInput').value.trim();
+  if(!n){ document.getElementById('nameInput').focus(); showToast('请先输入获奖者姓名 👆'); return null; }
+  return n;
 }
 
-// ── 抽奖逻辑 ──
-function getAvailable() { return prizes.filter(p => p.remaining > 0); }
+// ── 模式切换 ──
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('wheelMode').style.display = mode==='wheel'?'flex':'none';
+  document.getElementById('scratchMode').style.display = mode==='scratch'?'flex':'none';
+  document.getElementById('tabWheel').className = 'mode-tab'+(mode==='wheel'?' active':'');
+  document.getElementById('tabScratch').className = 'mode-tab'+(mode==='scratch'?' active':'');
+  if(mode==='scratch') buildScratchCards();
+}
 
-function startSpin() {
-  if (isSpinning) return;
-  const available = getAvailable();
-  if (available.length === 0) { showToast('所有奖品已抽完！'); return; }
+// ── 主抽奖入口 ──
+function onDraw() {
+  if(currentMode==='wheel') startSpin();
+}
 
-  const name = document.getElementById('nameInput').value.trim();
-  if (!name) { document.getElementById('nameInput').focus(); showToast('请先输入获奖者姓名 👆'); return; }
+// ── 加权随机 ──
+function pickPrize() {
+  const av = getAvailable();
+  if(!av.length) return null;
+  const total = av.reduce((s,p)=>s+p.remaining,0);
+  let r = Math.random()*total;
+  for(const p of av){ r-=p.remaining; if(r<=0) return p; }
+  return av[av.length-1];
+}
 
-  isSpinning = true;
-  document.getElementById('drawBtn').disabled = true;
-  document.getElementById('centerBtn').disabled = true;
-  document.getElementById('centerBtn').textContent = '...';
-
-  // 加权随机选奖
-  const total = available.reduce((s, p) => s + p.remaining, 0);
-  let rand = Math.random() * total;
-  let winner = available[available.length - 1];
-  for (const p of available) { rand -= p.remaining; if (rand <= 0) { winner = p; break; } }
-
-  // 计算目标角度（指针在顶部=角度0，需要让winner扇区转到顶部）
-  const totalR = available.reduce((s, p) => s + p.remaining, 0);
-  let angleOffset = 0;
-  for (const p of available) {
-    if (p.id === winner.id || p.name === winner.name) break;
-    angleOffset += (p.remaining / totalR) * Math.PI * 2;
+// ── 转盘绘制 ──
+function drawWheel(rotateAngle=0) {
+  ctx.clearRect(0,0,320,320);
+  const av = getAvailable();
+  if(!av.length) {
+    ctx.fillStyle='rgba(255,255,255,.06)'; ctx.beginPath(); ctx.arc(R,R,R-2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#666'; ctx.font='bold 15px Microsoft YaHei'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('奖品已全部抽完',R,R); return;
   }
-  const sliceAngle = (winner.remaining / totalR) * Math.PI * 2;
-  const targetSliceMid = angleOffset + sliceAngle / 2;
+  const total = av.reduce((s,p)=>s+p.remaining,0);
+  let start = rotateAngle;
+  av.forEach((p,i)=>{
+    const slice=(p.remaining/total)*Math.PI*2;
+    const end=start+slice, mid=start+slice/2;
+    ctx.beginPath(); ctx.moveTo(R,R); ctx.arc(R,R,R-2,start,end); ctx.closePath();
+    ctx.fillStyle=p.color; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=1.5; ctx.stroke();
+    // emoji
+    ctx.save(); ctx.translate(R,R); ctx.rotate(mid);
+    ctx.font=`${av.length>5?22:26}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(p.emoji, R*0.58, 0); ctx.restore();
+    start=end;
+  });
+  // 外圈
+  ctx.beginPath(); ctx.arc(R,R,R-2,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,215,0,.5)'; ctx.lineWidth=4; ctx.stroke();
+  // 中心
+  ctx.beginPath(); ctx.arc(R,R,36,0,Math.PI*2);
+  ctx.fillStyle='#0d0d1a'; ctx.fill();
+  ctx.strokeStyle='rgba(255,215,0,.3)'; ctx.lineWidth=2; ctx.stroke();
+}
 
-  // 转盘转动：让 targetSliceMid 转到顶部（-π/2）
-  // 目标旋转量 = 5圈 + 校正
-  const spins = 5 * Math.PI * 2;
-  const targetAngle = spins + (Math.PI * 1.5 - targetSliceMid) % (Math.PI * 2);
+// ── 奖品预览 ──
+function renderPrizeLegend() {
+  const ul = document.getElementById('prizeLegend');
+  ul.innerHTML = prizes.map(p=>`
+    <li>
+      <span class="pl-dot" style="background:${p.color}"></span>
+      <span class="pl-name">${p.emoji} ${p.name}</span>
+      <span class="pl-sub">${p.sub}</span>
+      <span class="pl-remain">${p.remaining>0?'×'+p.remaining:'✓'}</span>
+    </li>
+  `).join('');
+}
 
-  const duration = 3500;
-  const startTime = performance.now();
-  const startAngle = currentAngle;
+// ── 转盘旋转 ──
+function startSpin() {
+  if(isSpinning) return;
+  const av=getAvailable();
+  if(!av.length){ showToast('所有奖品已抽完！'); return; }
+  const name=checkName(); if(!name) return;
 
-  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+  isSpinning=true;
+  document.getElementById('drawBtn').disabled=true;
+  document.getElementById('centerBtn').disabled=true;
+  document.getElementById('centerBtn').textContent='...';
 
-  function animate(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const angle = startAngle + targetAngle * easeOut(progress);
-    currentAngle = angle;
-    ctx.clearRect(0, 0, SIZE, SIZE);
-    drawWheel(angle);
+  const winner=pickPrize();
+  const totalR=av.reduce((s,p)=>s+p.remaining,0);
+  let offset=0;
+  for(const p of av){ if(p.id===winner.id) break; offset+=(p.remaining/totalR)*Math.PI*2; }
+  const sliceMid=offset+(winner.remaining/totalR)*Math.PI*2/2;
+  const targetAngle=5*Math.PI*2+(Math.PI*1.5-sliceMid)%(Math.PI*2);
 
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    } else {
-      // 停止
-      const prizeObj = prizes.find(p => p.name === winner.name);
-      prizeObj.remaining--;
-
-      const record = { name, prizeName: winner.name, prizeEmoji: winner.emoji };
-      history.push(record);
-      saveState();
-      renderHistory();
-      drawWheel(currentAngle);
-
-      // 显示弹窗
-      setTimeout(() => showModal(winner, name), 300);
-
-      isSpinning = false;
-      document.getElementById('drawBtn').disabled = false;
-      document.getElementById('centerBtn').disabled = false;
-      document.getElementById('centerBtn').textContent = 'GO';
-      document.getElementById('nameInput').value = '';
-    }
+  const duration=3500, startTime=performance.now(), startAngle=currentAngle;
+  function ease(t){ return 1-Math.pow(1-t,4); }
+  function animate(now){
+    const p=Math.min((now-startTime)/duration,1);
+    currentAngle=startAngle+targetAngle*ease(p);
+    drawWheel(currentAngle);
+    if(p<1){ requestAnimationFrame(animate); return; }
+    // 完成
+    prizes.find(p=>p.id===winner.id).remaining--;
+    history.push({name,prizeName:winner.name,prizeEmoji:winner.emoji,prizeSub:winner.sub});
+    saveState(); renderPrizeLegend(); renderHistory(); drawWheel(currentAngle);
+    setTimeout(()=>showModal(winner,name),300);
+    isSpinning=false;
+    document.getElementById('drawBtn').disabled=false;
+    document.getElementById('centerBtn').disabled=false;
+    document.getElementById('centerBtn').textContent='GO!';
+    document.getElementById('nameInput').value='';
   }
   requestAnimationFrame(animate);
 }
 
-function showModal(prize, name) {
-  document.getElementById('modalEmoji').textContent = prize.emoji;
-  document.getElementById('modalPrize').textContent = prize.name;
-  document.getElementById('modalWinner').innerHTML = `🎉 恭喜 <span>${name}</span> 获得此奖！`;
-  document.getElementById('modalOverlay').classList.add('show');
+// ── 搓搓乐 ──
+const CARD_BG_EMOJIS = ['🌟','✨','💫','🎊','🎉','🔮','🌈','🎁','🍀','⭐'];
+
+function buildScratchCards() {
+  const av=getAvailable();
+  if(!av.length){ showToast('所有奖品已抽完！'); return; }
+  const grid=document.getElementById('scratchGrid');
+  grid.innerHTML='';
+  // 生成9张，随机分配（含真实奖品）
+  const total=av.reduce((s,p)=>s+p.remaining,0);
+  for(let i=0;i<9;i++){
+    // 随机加权取一个奖品（不减数量，点击才算）
+    let r=Math.random()*total, prize=av[av.length-1];
+    for(const p of av){ r-=p.remaining; if(r<=0){ prize=p; break; } }
+
+    const wrap=document.createElement('div');
+    wrap.className='scratch-card-wrap';
+    wrap.dataset.prizeId=prize.id;
+    wrap.innerHTML=`
+      <div class="scratch-card-back">${CARD_BG_EMOJIS[Math.floor(Math.random()*CARD_BG_EMOJIS.length)]}</div>
+      <div class="scratch-card-front" style="background:linear-gradient(135deg,${prize.color}33,${prize.color}22);border:1.5px solid ${prize.color}66;">
+        <span class="sc-emoji">${prize.emoji}</span>
+        <span class="sc-name">${prize.name}</span>
+      </div>
+    `;
+    wrap.addEventListener('click',()=>onScratchCard(wrap,prize));
+    grid.appendChild(wrap);
+  }
+}
+
+function onScratchCard(wrap,prize) {
+  if(wrap.classList.contains('done')) return;
+  const av=getAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
+  const name=checkName(); if(!name) return;
+
+  // 找当前可用的对应奖品（可能已抽完，重新选）
+  let actual=prizes.find(p=>p.id===prize.id && p.remaining>0);
+  if(!actual) actual=pickPrize();
+  if(!actual){ showToast('所有奖品已抽完！'); return; }
+
+  actual.remaining--;
+  history.push({name,prizeName:actual.name,prizeEmoji:actual.emoji,prizeSub:actual.sub});
+  saveState(); renderHistory();
+
+  // 更新卡片显示
+  const front=wrap.querySelector('.scratch-card-front');
+  front.innerHTML=`<span class="sc-emoji">${actual.emoji}</span><span class="sc-name">${actual.name}</span>`;
+  front.style.background=`linear-gradient(135deg,${actual.color}44,${actual.color}22)`;
+  front.style.border=`1.5px solid ${actual.color}88`;
+  wrap.classList.add('done');
+  front.classList.add('revealed');
+
+  document.getElementById('nameInput').value='';
+  setTimeout(()=>showModal(actual,name),400);
   launchConfetti();
 }
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
+// ── 弹窗 ──
+function showModal(prize,name) {
+  document.getElementById('mEmoji').textContent=prize.emoji;
+  document.getElementById('mPrize').textContent=prize.name;
+  document.getElementById('mSub').textContent=prize.sub;
+  document.getElementById('mWinner').innerHTML=`🎉 恭喜 <span>${name}</span> 获得此奖！`;
+  document.getElementById('modalOverlay').classList.add('show');
+  launchConfetti();
 }
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+document.getElementById('modalOverlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
 
+// ── 历史 ──
 function renderHistory() {
-  const list = document.getElementById('historyList');
-  if (history.length === 0) {
-    list.innerHTML = '<li class="empty-history">暂无记录</li>';
-    return;
-  }
-  list.innerHTML = history.slice().reverse().map((h, i) => `
+  const list=document.getElementById('historyList');
+  if(!history.length){ list.innerHTML='<li class="empty-history">暂无记录</li>'; return; }
+  list.innerHTML=history.slice().reverse().map((h,i)=>`
     <li>
-      <span class="h-num">#${history.length - i}</span>
+      <span class="h-num">#${history.length-i}</span>
       <span class="h-name">${h.name}</span>
       <span class="h-prize">${h.prizeEmoji} ${h.prizeName}</span>
     </li>
   `).join('');
 }
 
-function saveState() {
-  localStorage.setItem('lp_prizes', JSON.stringify(prizes));
-  localStorage.setItem('lp_history', JSON.stringify(history));
-}
-
 function resetAll() {
-  if (!confirm('确认重置？所有奖品和记录将清空重来！')) return;
-  prizes = PRIZES.map(p => ({ ...p, remaining: p.total }));
-  history = [];
-  currentAngle = 0;
-  localStorage.removeItem('lp_prizes');
-  localStorage.removeItem('lp_history');
-  ctx.clearRect(0, 0, SIZE, SIZE);
-  drawWheel(0);
-  renderHistory();
+  if(!confirm('确认重置？所有奖品和记录将清空！')) return;
+  prizes=PRIZES.map(p=>({...p,remaining:p.total}));
+  history=[]; currentAngle=0;
+  localStorage.removeItem('lp2_prizes'); localStorage.removeItem('lp2_history');
+  drawWheel(0); renderPrizeLegend(); renderHistory();
+  if(currentMode==='scratch') buildScratchCards();
   showToast('已重置！');
 }
 
+// ── 彩屑 ──
 function launchConfetti() {
-  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#96CEB4'];
-  for (let i = 0; i < 80; i++) {
-    setTimeout(() => {
-      const el = document.createElement('div');
-      el.className = 'confetti';
-      el.style.cssText = `
-        left:${Math.random()*100}vw;
-        width:${5+Math.random()*8}px; height:${5+Math.random()*8}px;
-        background:${colors[Math.floor(Math.random()*colors.length)]};
-        border-radius:${Math.random()>0.5?'50%':'2px'};
-        animation-duration:${1.5+Math.random()*2}s;
-      `;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    }, i * 25);
-  }
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2500);
+  const colors=['#FFD700','#FF6B6B','#4ECDC4','#45B7D1','#FFEAA7','#DDA0DD','#96CEB4'];
+  for(let i=0;i<80;i++) setTimeout(()=>{
+    const el=document.createElement('div'); el.className='confetti';
+    el.style.cssText=`left:${Math.random()*100}vw;width:${5+Math.random()*8}px;height:${5+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${1.5+Math.random()*2}s;`;
+    document.body.appendChild(el); setTimeout(()=>el.remove(),3500);
+  },i*25);
 }
 
 // 回车触发
-document.getElementById('nameInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') startSpin();
-});
-
-// 点击弹窗外关闭
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal();
-});
+document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter') onDraw(); });
 
 // 初始化
-renderHistory();
-drawWheel(0);
+drawWheel(0); renderPrizeLegend(); renderHistory();
 </script>
 </body>
 </html>
