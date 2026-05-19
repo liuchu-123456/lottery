@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -133,6 +133,34 @@ canvas#wheelCanvas { border-radius:50%; box-shadow:0 0 40px rgba(255,215,0,.3),0
 .prize-edit-row label { color:rgba(255,255,255,.4); font-size:.72rem; min-width:28px; }
 .prize-edit-emoji { width:52px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
   border-radius:8px; padding:7px 8px; color:#fff; font-size:1.1rem; text-align:center; outline:none; }
+.btn-emoji-pick { background:rgba(255,215,0,.15); border:1px solid rgba(255,215,0,.3); border-radius:8px;
+  padding:7px 9px; font-size:1rem; cursor:pointer; transition:all .2s; color:#FFD700; }
+.btn-emoji-pick:hover { background:rgba(255,215,0,.25); }
+
+/* emoji弹窗 */
+.emoji-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:300;
+  align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+.emoji-overlay.show { display:flex; }
+.emoji-panel { background:linear-gradient(135deg,#1e1e3a,#16213e); border:1.5px solid rgba(255,215,0,.3);
+  border-radius:18px; padding:20px; width:340px; max-width:95vw; max-height:80vh; display:flex; flex-direction:column; }
+.emoji-panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.emoji-panel-header h3 { color:#FFD700; font-size:.95rem; letter-spacing:2px; }
+.btn-close-emoji { background:none; border:none; color:rgba(255,255,255,.4); font-size:1.3rem; cursor:pointer; }
+.emoji-cats { display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+.emoji-cat { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:20px;
+  padding:5px 12px; font-size:.78rem; color:rgba(255,255,255,.5); cursor:pointer; transition:all .2s; }
+.emoji-cat.active { background:rgba(255,215,0,.2); border-color:rgba(255,215,0,.4); color:#FFD700; }
+.emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; overflow-y:auto; flex:1; }
+.emoji-item { font-size:1.5rem; text-align:center; padding:6px 2px; cursor:pointer; border-radius:8px;
+  transition:background .15s; line-height:1; }
+.emoji-item:hover { background:rgba(255,255,255,.12); }
+
+/* 管理模式tab */
+.admin-mode-tabs { display:flex; gap:8px; margin-bottom:16px; }
+.admin-mode-tab { flex:1; padding:8px; border-radius:10px; border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05); color:rgba(255,255,255,.4); font-size:.82rem; font-weight:600;
+  cursor:pointer; text-align:center; transition:all .2s; }
+.admin-mode-tab.active { background:rgba(255,215,0,.15); border-color:rgba(255,215,0,.4); color:#FFD700; }
 .prize-edit-name { flex:2; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
   border-radius:8px; padding:7px 10px; color:#fff; font-size:.85rem; outline:none; min-width:100px; }
 .prize-edit-sub { flex:2; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
@@ -236,10 +264,27 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
   <button class="btn-admin" onclick="openAdmin()">⚙️ 管理设置</button>
 </div>
 
+<!-- emoji选择器 -->
+<div class="emoji-overlay" id="emojiOverlay">
+  <div class="emoji-panel">
+    <div class="emoji-panel-header">
+      <h3>😊 选择 Emoji</h3>
+      <button class="btn-close-emoji" onclick="closeEmojiPicker()">×</button>
+    </div>
+    <div class="emoji-cats" id="emojiCats"></div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+  </div>
+</div>
+
 <!-- 管理面板 -->
 <div class="admin-overlay" id="adminOverlay">
   <div class="admin-panel">
     <h2>⚙️ 管理设置 <button class="btn-close-admin" onclick="closeAdmin()">×</button></h2>
+
+    <div class="admin-mode-tabs">
+      <div class="admin-mode-tab active" id="adminTabWheel" onclick="switchAdminTab('wheel')">🎡 转盘奖品</div>
+      <div class="admin-mode-tab" id="adminTabScratch" onclick="switchAdminTab('scratch')">🎴 搓搓乐奖品</div>
+    </div>
 
     <div class="admin-section">
       <h3>🎁 奖品配置（emoji · 名称 · 说明 · 份数）</h3>
@@ -303,6 +348,7 @@ const COLORS = ['#c0392b','#e74c3c','#8e44ad','#2980b9','#e67e22','#16a085','#f3
 
 // ── 状态加载 ──
 let prizes = JSON.parse(localStorage.getItem('lp3_prizes')||'null') || DEFAULT_PRIZES.map(p=>({...p,remaining:p.total}));
+let scratchPrizes = JSON.parse(localStorage.getItem('lp3_prizes_scratch')||'null') || DEFAULT_PRIZES.map(p=>({...p,remaining:p.total}));
 let rules  = JSON.parse(localStorage.getItem('lp3_rules') ||'null') || {...DEFAULT_RULES};
 let history = JSON.parse(localStorage.getItem('lp3_history')||'[]');
 let isSpinning=false, currentAngle=0, currentMode='wheel';
@@ -312,6 +358,7 @@ const canvas=document.getElementById('wheelCanvas'), ctx=canvas.getContext('2d')
 // ── 持久化 ──
 function save() {
   localStorage.setItem('lp3_prizes', JSON.stringify(prizes));
+  localStorage.setItem('lp3_prizes_scratch', JSON.stringify(scratchPrizes));
   localStorage.setItem('lp3_rules',  JSON.stringify(rules));
   localStorage.setItem('lp3_history',JSON.stringify(history));
 }
@@ -421,8 +468,9 @@ function startSpin() {
 
 // ── 搓搓乐 ──
 const BG=['🌟','✨','💫','🎊','🎉','🔮','🌈','🎁','🍀','⭐'];
+function getScratchAvailable() { return scratchPrizes.filter(p=>p.remaining>0); }
 function buildScratchCards() {
-  const av=getAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
+  const av=getScratchAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
   const grid=document.getElementById('scratchGrid'); grid.innerHTML='';
   const total=av.reduce((s,p)=>s+p.remaining,0);
   for(let i=0;i<9;i++){
@@ -440,9 +488,10 @@ function buildScratchCards() {
 }
 function onScratch(wrap,prize) {
   if(wrap.classList.contains('done')) return;
-  const av=getAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
+  const av=getScratchAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
   const name=checkName(); if(!name) return;
-  let actual=prizes.find(p=>p.id===prize.id&&p.remaining>0) || pickPrize();
+  let actual=scratchPrizes.find(p=>p.id===prize.id&&p.remaining>0);
+  if(!actual){ const t=av.reduce((s,p)=>s+p.remaining,0); let r=Math.random()*t; actual=av[av.length-1]; for(const p of av){r-=p.remaining;if(r<=0){actual=p;break;}} }
   if(!actual){ showToast('所有奖品已抽完！'); return; }
   actual.remaining--;
   history.push({name,prizeName:actual.name,prizeEmoji:actual.emoji,prizeSub:actual.sub});
@@ -492,18 +541,58 @@ function resetAll() {
 }
 
 // ── 管理面板 ──
+const EMOJI_CATS = [
+  { name:'🍕食物', emojis:'🍕🍔🍗🎜🍣🦐🦞🦀🦑🐟🍱🦘🍲🦗🍛🍝🍤🌮🌯🥪🥙🦆🐿🍳🥞🥧🥓🥩🍖🌭🍟🌿🤭🍿🥥'.split('') },
+  { name:'🎉活动', emojis:'🎉🎊🎈🎁🎀🏆🥇🥈🥉🎖🏅🎗🎟🎪🎭🎨🎬🎤🎵🎶🎸🎹🥁🎺🎻🎯🎱🎳🎮🕹🎲🧩🎭'.split('') },
+  { name:'📎物品', emojis:'💎💍👑🔮🧿🪤🎩🪅🧸🪆🖼🎐🪁🎑🎆🎇✨💫⭐🌟🔥💥🎏🏧🎁🎊🎉🛍🧧🨢🎗'.split('') },
+  { name:'🐶动物', emojis:'🐶🐱🐭🐰🦊🐻🐼🐨🐯🦁🐸🐷🐔🐧🦆🦅🦉🦇🐺🐗🦄🐝🐛🦋🐌🐞🐜🦟🦗🕷🦂🐢🐍🦎🐳🐬🦍🐡🐢🦈🐙🦑🦐🦞🦀🦓🦌🦘🦙🐮🐎🐖🐏🦙🐐'.split('') },
+  { name:'⭐符号', emojis:'⭐🌟💫✨🔥❤🧡📛💚💙💜🖤🤍🤎❤‍🔥💯🆕🆓🔔🔕✅❌⚠🚫💢💥🎯🏹🎪🎭🎨'.split('') },
+];
+let emojiTargetInput = null;
+let currentEmojiCat = 0;
+
+function openEmojiPicker(input) {
+  emojiTargetInput = input;
+  renderEmojiCats();
+  renderEmojiGrid(0);
+  document.getElementById('emojiOverlay').classList.add('show');
+}
+function closeEmojiPicker() {
+  document.getElementById('emojiOverlay').classList.remove('show');
+  emojiTargetInput = null;
+}
+function renderEmojiCats() {
+  const cats = document.getElementById('emojiCats');
+  cats.innerHTML = EMOJI_CATS.map((c,i)=>`
+    <div class="emoji-cat ${i===currentEmojiCat?'active':''}" onclick="renderEmojiGrid(${i})">${c.name}</div>`).join('');
+}
+function renderEmojiGrid(catIdx) {
+  currentEmojiCat = catIdx;
+  renderEmojiCats();
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = EMOJI_CATS[catIdx].emojis.map(e=>`
+    <div class="emoji-item" onclick="selectEmoji('${e}')">${e}</div>`).join('');
+}
+function selectEmoji(emoji) {
+  if (emojiTargetInput) {
+    emojiTargetInput.value = emoji;
+  }
+  closeEmojiPicker();
+}
+document.getElementById('emojiOverlay').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeEmojiPicker(); });
+
+// 管理面板模式tab
+let adminEditMode = 'wheel';
+function switchAdminTab(mode) {
+  adminEditMode = mode;
+  document.getElementById('adminTabWheel').className = 'admin-mode-tab'+(mode==='wheel'?' active':'');
+  document.getElementById('adminTabScratch').className = 'admin-mode-tab'+(mode==='scratch'?' active':'');
+  renderPrizeEditor(mode);
+}
+
 function openAdmin() {
-  // 填充奖品编辑列表
-  const list=document.getElementById('prizeEditorList');
-  list.innerHTML=prizes.map((p,i)=>`
-    <div class="prize-edit-row" data-idx="${i}">
-      <label>${i+1}</label>
-      <input class="prize-edit-emoji" value="${p.emoji}" placeholder="emoji" maxlength="4">
-      <input class="prize-edit-name" value="${p.name}" placeholder="奖品名称" maxlength="12">
-      <input class="prize-edit-sub" value="${p.sub}" placeholder="奖品说明" maxlength="24">
-      <input class="prize-edit-total" type="number" value="${p.total}" min="1" max="99" placeholder="份数">
-    </div>`).join('');
-  // 填充规则
+  adminEditMode = currentMode;
+  switchAdminTab(currentMode);
   document.getElementById('ruleMode').value=rules.mode;
   document.getElementById('ruleRedeemer').value=rules.redeemer;
   document.getElementById('ruleDeadline').value=rules.deadline;
@@ -511,6 +600,20 @@ function openAdmin() {
 }
 function closeAdmin() { document.getElementById('adminOverlay').classList.remove('show'); }
 document.getElementById('adminOverlay').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeAdmin(); });
+
+function renderPrizeEditor(mode) {
+  const list = document.getElementById('prizeEditorList');
+  const src = mode==='wheel' ? prizes : scratchPrizes;
+  list.innerHTML = src.map((p,i)=>`
+    <div class="prize-edit-row" data-idx="${i}">
+      <label>${i+1}</label>
+      <input class="prize-edit-emoji" value="${p.emoji}" placeholder="emoji" maxlength="4" id="emojiInput_${i}">
+      <button class="btn-emoji-pick" onclick="openEmojiPicker(document.getElementById('emojiInput_${i}'))" type="button">😊</button>
+      <input class="prize-edit-name" value="${p.name}" placeholder="奖品名称" maxlength="12">
+      <input class="prize-edit-sub" value="${p.sub}" placeholder="奖品说明" maxlength="24">
+      <input class="prize-edit-total" type="number" value="${p.total}" min="1" max="99">
+    </div>`).join('');
+}
 
 function saveAdmin() {
   const rows=document.querySelectorAll('#prizeEditorList .prize-edit-row');
@@ -521,12 +624,16 @@ function saveAdmin() {
     const name=inputs[1].value.trim()||'奖品'+(i+1);
     const sub=inputs[2].value.trim();
     const total=Math.max(1,parseInt(inputs[3].value)||1);
-    const old=prizes[i]||{};
-    // 如果总量变了，重新设置剩余量；否则保留当前剩余量
-    const remaining=(total!==old.total) ? total : Math.min(old.remaining??total, total);
-    newPrizes.push({ id:old.id||Date.now()+i, emoji, name, sub, total, remaining, color:old.color||COLORS[i%COLORS.length] });
+    const src = adminEditMode==='wheel' ? prizes : scratchPrizes;
+    const old=src[i]||{};
+    const remaining=(total!==old.total)?total:Math.min(old.remaining??total,total);
+    newPrizes.push({id:old.id||Date.now()+i,emoji,name,sub,total,remaining,color:old.color||COLORS[i%COLORS.length]});
   });
-  prizes=newPrizes;
+  if(adminEditMode==='wheel') {
+    prizes=newPrizes;
+  } else {
+    scratchPrizes=newPrizes;
+  }
   rules.mode=document.getElementById('ruleMode').value;
   rules.redeemer=document.getElementById('ruleRedeemer').value.trim()||'管理员';
   rules.deadline=document.getElementById('ruleDeadline').value.trim()||'7天';
