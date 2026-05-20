@@ -261,16 +261,16 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px;">
         <span style="color:#888;font-size:.78rem;min-width:60px;">横向位置</span>
-        <input type="range" id="pPosX" min="0" max="100" value="12" oninput="syncP(this,'pPosXV');renderPoster()" style="width:110px;accent-color:#FFD700;">
-        <span id="pPosXV" style="color:#FFD700;font-size:.78rem;min-width:32px;">12%</span>
+        <input type="range" id="pPosX" min="0" max="100" value="32" oninput="syncP(this,'pPosXV');renderPoster()" style="width:110px;accent-color:#FFD700;">
+        <span id="pPosXV" style="color:#FFD700;font-size:.78rem;min-width:32px;">32%</span>
         <span style="color:#888;font-size:.78rem;min-width:60px;">纵向位置</span>
         <input type="range" id="pPosY" min="0" max="100" value="84" oninput="syncP(this,'pPosYV');renderPoster()" style="width:110px;accent-color:#FFD700;">
         <span id="pPosYV" style="color:#FFD700;font-size:.78rem;min-width:32px;">84%</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
         <span style="color:#888;font-size:.78rem;min-width:60px;">字体大小</span>
-        <input type="range" id="pFontSize" min="20" max="120" value="54" oninput="syncP(this,'pFontSizeV');renderPoster()" style="width:110px;accent-color:#FFD700;">
-        <span id="pFontSizeV" style="color:#FFD700;font-size:.78rem;min-width:32px;">54px</span>
+        <input type="range" id="pFontSize" min="20" max="120" value="42" oninput="syncP(this,'pFontSizeV');renderPoster()" style="width:110px;accent-color:#FFD700;">
+        <span id="pFontSizeV" style="color:#FFD700;font-size:.78rem;min-width:32px;">42px</span>
         <span style="color:#888;font-size:.78rem;min-width:30px;">字色</span>
         <input type="color" id="pColor" value="#331a10" oninput="renderPoster()" style="width:36px;height:30px;border:none;background:none;cursor:pointer;">
         <span style="color:#888;font-size:.78rem;min-width:30px;">描边</span>
@@ -765,16 +765,20 @@ function renderPoster() {
   posterCtx.shadowColor = 'rgba(0,0,0,0.2)';
   posterCtx.shadowBlur = 4;
   posterCtx.fillText(name, x, y);
+
+  // 周次：姓名右边同行，字号小一点
+  const nameWidth = posterCtx.measureText(name).width;
   posterCtx.restore();
 
-  // 周次小字
   posterCtx.save();
-  posterCtx.font = 'bold ' + Math.round(fsize * 0.44) + 'px Microsoft YaHei';
+  posterCtx.font = 'bold ' + Math.round(fsize * 0.6) + 'px Microsoft YaHei';
   posterCtx.textAlign = 'left';
   posterCtx.textBaseline = 'middle';
   posterCtx.fillStyle = fcolor;
-  posterCtx.globalAlpha = 0.75;
-  posterCtx.fillText('第 ' + week + ' 周', x, y + fsize * 0.72);
+  posterCtx.globalAlpha = 0.8;
+  posterCtx.shadowColor = 'rgba(0,0,0,0.2)';
+  posterCtx.shadowBlur = 3;
+  posterCtx.fillText(' 第' + week + '周', x + nameWidth, y);
   posterCtx.restore();
 }
 
