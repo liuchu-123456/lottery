@@ -284,11 +284,6 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
   <canvas id="posterCanvas" style="display:none;border-radius:10px;box-shadow:0 0 30px rgba(255,215,0,.25);max-width:100%;cursor:zoom-in;" onclick="openPosterFullscreen()"></canvas>
 </div>
 
-<!-- 海报全屏查看 -->
-<div id="posterFullscreen" onclick="closePosterFullscreen()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:500;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(6px);">
-  <img id="posterFullImg" style="max-width:95vw;max-height:95vh;border-radius:10px;box-shadow:0 0 60px rgba(255,215,0,.3);">
-  <div style="position:absolute;top:20px;right:24px;color:rgba(255,255,255,.5);font-size:1.5rem;cursor:pointer;" onclick="closePosterFullscreen()">✕</div>
-</div>
 
 <!-- 搓搓乐 -->
 <div id="scratchMode">
@@ -803,18 +798,45 @@ document.getElementById('posterWeek').addEventListener('input', renderPoster);
 
 
 function openPosterFullscreen() {
-  const img = document.getElementById('posterFullImg');
-  img.src = posterCanvas.toDataURL('image/png');
-  const el = document.getElementById('posterFullscreen');
-  el.style.display = 'flex';
-  // 阻止body滚动
+  let overlay = document.getElementById('_posterFsOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = '_posterFsOverlay';
+    Object.assign(overlay.style, {
+      position:'fixed', inset:'0', background:'rgba(0,0,0,.92)',
+      zIndex:'9999', display:'flex', alignItems:'center',
+      justifyContent:'center', cursor:'zoom-out',
+      backdropFilter:'blur(6px)'
+    });
+    const img = document.createElement('img');
+    img.id = '_posterFsImg';
+    Object.assign(img.style, {
+      maxWidth:'95vw', maxHeight:'95vh',
+      borderRadius:'10px',
+      boxShadow:'0 0 60px rgba(255,215,0,.3)'
+    });
+    const closeBtn = document.createElement('div');
+    closeBtn.textContent = '✕';
+    Object.assign(closeBtn.style, {
+      position:'absolute', top:'20px', right:'24px',
+      color:'rgba(255,255,255,.6)', fontSize:'2rem', cursor:'pointer'
+    });
+    closeBtn.onclick = closePosterFullscreen;
+    overlay.onclick = closePosterFullscreen;
+    img.onclick = e => e.stopPropagation();
+    overlay.appendChild(img);
+    overlay.appendChild(closeBtn);
+    document.body.appendChild(overlay);
+  }
+  document.getElementById('_posterFsImg').src = posterCanvas.toDataURL('image/png');
+  document.getElementById('_posterFsOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 function closePosterFullscreen() {
-  document.getElementById('posterFullscreen').style.display = 'none';
+  const o = document.getElementById('_posterFsOverlay');
+  if (o) o.style.display = 'none';
   document.body.style.overflow = '';
 }
-// ESC关闭
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closePosterFullscreen();
 });
