@@ -293,7 +293,7 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
 </div>
 
 <!-- 历史 -->
-<div class="history">
+<div class="history" id="historyWrap">
   <div class="history-header">
     <h3>🏆 中奖记录</h3>
     <button class="btn-reset" onclick="resetAll()">重置</button>
@@ -436,6 +436,9 @@ function switchMode(mode) {
   // 海报模式隐藏抽奖输入区
   document.getElementById('drawBtn').style.display=mode==='poster'?'none':'';
   document.getElementById('nameInput').style.display=mode==='poster'?'none':'';
+  // 海报模式隐藏历史记录区域
+  const hw = document.getElementById('historyWrap');
+  if(hw) hw.style.display = mode==='poster' ? 'none' : '';
   if(mode==='scratch') buildScratchCards();
 }
 function onDraw() { if(currentMode==='wheel') startSpin(); }
@@ -797,6 +800,55 @@ document.getElementById('posterName').addEventListener('input', renderPoster);
 document.getElementById('posterWeek').addEventListener('input', renderPoster);
 
 
+function launchConfetti() {
+  // 纯JS撒花效果
+  const colors = ['#FFD700','#FF6B6B','#4ECDC4','#A8E6CF','#FFB347','#C9A0DC','#FF69B4'];
+  for (let i = 0; i < 120; i++) {
+    const el = document.createElement('div');
+    const size = Math.random() * 10 + 6;
+    Object.assign(el.style, {
+      position:'fixed',
+      left: Math.random()*100+'vw',
+      top: '-20px',
+      width: size+'px',
+      height: size+'px',
+      background: colors[Math.floor(Math.random()*colors.length)],
+      borderRadius: Math.random()>0.5?'50%':'2px',
+      zIndex:'10000',
+      pointerEvents:'none',
+      opacity:'1',
+      transform: 'rotate('+Math.random()*360+'deg)',
+      transition: 'none'
+    });
+    document.body.appendChild(el);
+    const duration = 1800 + Math.random()*1200;
+    const xDrift = (Math.random()-0.5)*300;
+    el.animate([
+      {transform:'translateY(0) translateX(0) rotate(0deg)', opacity:1},
+      {transform:`translateY(110vh) translateX(${xDrift}px) rotate(${Math.random()*720}deg)`, opacity:0}
+    ], {duration, easing:'cubic-bezier(.25,.46,.45,.94)'}).onfinish = ()=>el.remove();
+  }
+}
+
+function playAwardSound() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const notes = [523,659,784,1047,1319];
+    notes.forEach((freq,i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      const t = ctx.currentTime + i*0.12;
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.3,t+0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      osc.start(t); osc.stop(t+0.35);
+    });
+  } catch(e){}
+}
+
 function openPosterFullscreen() {
   let overlay = document.getElementById('_posterFsOverlay');
   if (!overlay) {
@@ -831,6 +883,8 @@ function openPosterFullscreen() {
   document.getElementById('_posterFsImg').src = posterCanvas.toDataURL('image/png');
   document.getElementById('_posterFsOverlay').style.display = 'flex';
   document.body.style.overflow = 'hidden';
+  launchConfetti();
+  playAwardSound();
 }
 function closePosterFullscreen() {
   const o = document.getElementById('_posterFsOverlay');
