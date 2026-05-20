@@ -223,6 +223,7 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
 <div class="mode-tabs">
   <div class="mode-tab active" id="tabWheel" onclick="switchMode('wheel')">🎡 大转盘</div>
   <div class="mode-tab" id="tabScratch" onclick="switchMode('scratch')">🎴 搓搓乐</div>
+  <div class="mode-tab" id="tabPoster" onclick="switchMode('poster')">🏆 荣誉海报</div>
 </div>
 
 <div class="input-area">
@@ -241,6 +242,46 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
     <h4>🎁 奖品一览</h4>
     <ul class="prize-legend-list" id="prizeLegend"></ul>
   </div>
+</div>
+
+
+<!-- 荣誉海报 -->
+<div id="posterMode" style="display:none;flex-direction:column;align-items:center;width:100%;position:relative;z-index:1">
+  <div style="width:100%;max-width:600px;margin-bottom:14px;">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:10px;">
+      <input id="posterName" type="text" placeholder="输入获奖人姓名" maxlength="10"
+        style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,215,0,.3);border-radius:10px;padding:10px 16px;color:#fff;font-size:1rem;outline:none;width:160px;">
+      <label style="color:#aaa;font-size:.85rem;">第</label>
+      <input id="posterWeek" type="number" value="1" min="1" max="52"
+        style="background:rgba(255,255,255,.08);border:1.5px solid rgba(255,215,0,.3);border-radius:10px;padding:10px 10px;color:#fff;font-size:.9rem;outline:none;width:70px;text-align:center;">
+      <label style="color:#aaa;font-size:.85rem;">周</label>
+      <button onclick="renderPoster()" style="background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;border-radius:10px;padding:10px 20px;font-weight:700;font-size:.9rem;cursor:pointer;">🎨 生成</button>
+      <button onclick="downloadPoster()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;font-size:.9rem;cursor:pointer;">⬇️ 下载</button>
+    </div>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px;">
+        <span style="color:#888;font-size:.78rem;min-width:60px;">横向位置</span>
+        <input type="range" id="pPosX" min="0" max="100" value="12" oninput="syncP(this,'pPosXV');renderPoster()" style="width:110px;accent-color:#FFD700;">
+        <span id="pPosXV" style="color:#FFD700;font-size:.78rem;min-width:32px;">12%</span>
+        <span style="color:#888;font-size:.78rem;min-width:60px;">纵向位置</span>
+        <input type="range" id="pPosY" min="0" max="100" value="84" oninput="syncP(this,'pPosYV');renderPoster()" style="width:110px;accent-color:#FFD700;">
+        <span id="pPosYV" style="color:#FFD700;font-size:.78rem;min-width:32px;">84%</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+        <span style="color:#888;font-size:.78rem;min-width:60px;">字体大小</span>
+        <input type="range" id="pFontSize" min="20" max="120" value="54" oninput="syncP(this,'pFontSizeV');renderPoster()" style="width:110px;accent-color:#FFD700;">
+        <span id="pFontSizeV" style="color:#FFD700;font-size:.78rem;min-width:32px;">54px</span>
+        <span style="color:#888;font-size:.78rem;min-width:30px;">字色</span>
+        <input type="color" id="pColor" value="#331a10" oninput="renderPoster()" style="width:36px;height:30px;border:none;background:none;cursor:pointer;">
+        <span style="color:#888;font-size:.78rem;min-width:30px;">描边</span>
+        <input type="color" id="pStroke" value="#ffffff" oninput="renderPoster()" style="width:36px;height:30px;border:none;background:none;cursor:pointer;">
+        <input type="range" id="pStrokeW" min="0" max="8" value="0" oninput="syncP(this,'pStrokeWV');renderPoster()" style="width:80px;accent-color:#FFD700;">
+        <span id="pStrokeWV" style="color:#FFD700;font-size:.78rem;min-width:28px;">0px</span>
+      </div>
+    </div>
+  </div>
+  <p id="posterLoading" style="color:rgba(255,215,0,.6);font-size:.9rem;margin:10px 0;">🔄 加载海报模版中...</p>
+  <canvas id="posterCanvas" style="display:none;border-radius:10px;box-shadow:0 0 30px rgba(255,215,0,.25);max-width:100%;"></canvas>
 </div>
 
 <!-- 搓搓乐 -->
@@ -387,8 +428,13 @@ function switchMode(mode) {
   currentMode=mode;
   document.getElementById('wheelMode').style.display=mode==='wheel'?'flex':'none';
   document.getElementById('scratchMode').style.display=mode==='scratch'?'flex':'none';
+  document.getElementById('posterMode').style.display=mode==='poster'?'flex':'none';
   document.getElementById('tabWheel').className='mode-tab'+(mode==='wheel'?' active':'');
   document.getElementById('tabScratch').className='mode-tab'+(mode==='scratch'?' active':'');
+  document.getElementById('tabPoster').className='mode-tab'+(mode==='poster'?' active':'');
+  // 海报模式隐藏抽奖输入区
+  document.getElementById('drawBtn').style.display=mode==='poster'?'none':'';
+  document.getElementById('nameInput').style.display=mode==='poster'?'none':'';
   if(mode==='scratch') buildScratchCards();
 }
 function onDraw() { if(currentMode==='wheel') startSpin(); }
@@ -658,6 +704,93 @@ document.getElementById('nameInput').addEventListener('keydown',e=>{ if(e.key===
 
 // 初始化
 drawWheel(0); renderPrizeLegend(); renderHistory();
+
+// ── 海报模式 ──
+const POSTER_BG_URL = 'https://liuchu-123456.github.io/lottery/poster_bg2.jpg';
+let posterBgImg = null;
+const posterCanvas = document.getElementById('posterCanvas');
+const posterCtx = posterCanvas.getContext('2d');
+
+// 预加载背景图
+(function loadPosterBg(){
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    posterBgImg = img;
+    posterCanvas.width = img.width;
+    posterCanvas.height = img.height;
+    posterCanvas.style.maxWidth = Math.min(600, window.innerWidth - 32) + 'px';
+    document.getElementById('posterLoading').style.display = 'none';
+    posterCanvas.style.display = 'block';
+    renderPoster();
+  };
+  img.onerror = () => {
+    document.getElementById('posterLoading').textContent = '⏳ 模版加载中，请稍候刷新...';
+  };
+  img.src = POSTER_BG_URL + '?v=2';
+})();
+
+function syncP(el, valId) {
+  const unit = el.id === 'pFontSize' ? 'px' : el.id === 'pStrokeW' ? 'px' : '%';
+  document.getElementById(valId).textContent = el.value + unit;
+}
+
+function renderPoster() {
+  if (!posterBgImg) return;
+  const name = document.getElementById('posterName').value.trim() || '______';
+  const week = document.getElementById('posterWeek').value || '1';
+  const W = posterCanvas.width, H = posterCanvas.height;
+  const px = parseFloat(document.getElementById('pPosX').value) / 100;
+  const py = parseFloat(document.getElementById('pPosY').value) / 100;
+  const fsize = parseInt(document.getElementById('pFontSize').value);
+  const fcolor = document.getElementById('pColor').value;
+  const scolor = document.getElementById('pStroke').value;
+  const sw = parseInt(document.getElementById('pStrokeW').value);
+
+  posterCtx.clearRect(0,0,W,H);
+  posterCtx.drawImage(posterBgImg, 0, 0, W, H);
+
+  const x = W * px, y = H * py;
+  posterCtx.save();
+  posterCtx.font = 'bold ' + fsize + 'px Microsoft YaHei, Arial';
+  posterCtx.textAlign = 'left';
+  posterCtx.textBaseline = 'middle';
+  if (sw > 0) {
+    posterCtx.strokeStyle = scolor;
+    posterCtx.lineWidth = sw * 2;
+    posterCtx.lineJoin = 'round';
+    posterCtx.strokeText(name, x, y);
+  }
+  posterCtx.fillStyle = fcolor;
+  posterCtx.shadowColor = 'rgba(0,0,0,0.2)';
+  posterCtx.shadowBlur = 4;
+  posterCtx.fillText(name, x, y);
+  posterCtx.restore();
+
+  // 周次小字
+  posterCtx.save();
+  posterCtx.font = 'bold ' + Math.round(fsize * 0.44) + 'px Microsoft YaHei';
+  posterCtx.textAlign = 'left';
+  posterCtx.textBaseline = 'middle';
+  posterCtx.fillStyle = fcolor;
+  posterCtx.globalAlpha = 0.75;
+  posterCtx.fillText('第 ' + week + ' 周', x, y + fsize * 0.72);
+  posterCtx.restore();
+}
+
+function downloadPoster() {
+  if (!posterBgImg) { showToast('请等待模版加载完成'); return; }
+  const a = document.createElement('a');
+  a.href = posterCanvas.toDataURL('image/png');
+  const name = document.getElementById('posterName').value.trim() || 'MVP';
+  const week = document.getElementById('posterWeek').value || '1';
+  a.download = '虾王MVP_第' + week + '周_' + name + '.png';
+  a.click();
+}
+
+document.getElementById('posterName').addEventListener('input', renderPoster);
+document.getElementById('posterWeek').addEventListener('input', renderPoster);
+
 </script>
 </body>
 </html>
