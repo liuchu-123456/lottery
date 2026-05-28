@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -289,7 +289,7 @@ input:focus { border-color:rgba(255,215,0,.5) !important; }
 <div id="scratchMode">
   <p class="scratch-hint">👆 点击卡片，翻开你的运气</p>
   <div class="scratch-cards-grid" id="scratchGrid"></div>
-  <button class="btn-new-cards" onclick="buildScratchCards()">🔀 换一批卡片</button>
+  <button class="btn-new-cards" onclick="buildScratchCards(true)">🔀 换一批卡片</button>
 </div>
 
 <!-- 历史 -->
@@ -519,24 +519,77 @@ function startSpin() {
 // ── 搓搓乐 ──
 const BG=['🌟','✨','💫','🎊','🎉','🔮','🌈','🎁','🍀','⭐'];
 function getScratchAvailable() { return scratchPrizes.filter(p=>p.remaining>0); }
-function buildScratchCards() {
+
+// 搓搓乐卡片状态持久化：保存/加载9张卡的配置和已搓状态
+function saveScratchCards(cards) {
+  // cards: [{prizeId, bgEmoji, done, actualPrizeId, actualEmoji, actualName}]
+  localStorage.setItem('lp3_scratch_cards', JSON.stringify(cards));
+}
+function loadScratchCards() {
+  try { return JSON.parse(localStorage.getItem('lp3_scratch_cards')||'null'); } catch(e){ return null; }
+}
+function clearScratchCards() {
+  localStorage.removeItem('lp3_scratch_cards');
+}
+
+function buildScratchCards(forceNew=false) {
   const av=getScratchAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
   const grid=document.getElementById('scratchGrid'); grid.innerHTML='';
-  const total=av.reduce((s,p)=>s+p.remaining,0);
-  for(let i=0;i<9;i++){
-    let r=Math.random()*total, prize=av[av.length-1];
-    for(const p of av){ r-=p.remaining; if(r<=0){ prize=p; break; } }
-    const wrap=document.createElement('div'); wrap.className='scratch-card-wrap'; wrap.dataset.prizeId=prize.id;
-    wrap.innerHTML=`
-      <div class="scratch-card-back">${BG[Math.floor(Math.random()*BG.length)]}</div>
-      <div class="scratch-card-front" style="background:linear-gradient(135deg,${prize.color||'#333'}33,${prize.color||'#333'}22);border:1.5px solid ${prize.color||'#888'}66;">
-        <span class="sc-emoji">${prize.emoji}</span><span class="sc-name">${prize.name}</span>
-      </div>`;
-    wrap.addEventListener('click',()=>onScratch(wrap,prize));
-    grid.appendChild(wrap);
+
+  // 尝试恢复已有卡片状态（除非强制刷新）
+  let savedCards = forceNew ? null : loadScratchCards();
+
+  // 验证保存的卡片是否仍然有效（奖品配置未变）
+  if (savedCards) {
+    const validIds = new Set(scratchPrizes.map(p=>p.id));
+    if (!savedCards.every(c => validIds.has(c.prizeId))) savedCards = null;
   }
+
+  let cardDefs;
+  if (savedCards) {
+    // 恢复已有卡片
+    cardDefs = savedCards;
+  } else {
+    // 生成新的9张卡
+    const total=av.reduce((s,p)=>s+p.remaining,0);
+    cardDefs = [];
+    for(let i=0;i<9;i++){
+      let r=Math.random()*total, prize=av[av.length-1];
+      for(const p of av){ r-=p.remaining; if(r<=0){ prize=p; break; } }
+      cardDefs.push({ prizeId:prize.id, bgEmoji:BG[Math.floor(Math.random()*BG.length)], done:false, actualPrizeId:null, actualEmoji:null, actualName:null });
+    }
+    saveScratchCards(cardDefs);
+  }
+
+  // 渲染卡片
+  cardDefs.forEach((card, idx) => {
+    const prize = scratchPrizes.find(p=>p.id===card.prizeId) || av[0];
+    const wrap=document.createElement('div');
+    wrap.className='scratch-card-wrap' + (card.done?' done':'');
+    wrap.dataset.cardIdx = idx;
+
+    if (card.done) {
+      // 已搓：显示结果，背面隐藏，加锁定样式
+      wrap.innerHTML=`
+        <div class="scratch-card-back" style="opacity:0;pointer-events:none">${card.bgEmoji}</div>
+        <div class="scratch-card-front revealed" style="background:linear-gradient(135deg,${prize.color||'#333'}33,${prize.color||'#333'}22);border:1.5px solid ${prize.color||'#888'}66;">
+          <span class="sc-emoji">${card.actualEmoji||prize.emoji}</span>
+          <span class="sc-name">${card.actualName||prize.name}</span>
+          <span style="font-size:.6rem;color:rgba(255,255,255,.3);margin-top:2px;">已搓</span>
+        </div>`;
+    } else {
+      wrap.innerHTML=`
+        <div class="scratch-card-back">${card.bgEmoji}</div>
+        <div class="scratch-card-front" style="background:linear-gradient(135deg,${prize.color||'#333'}33,${prize.color||'#333'}22);border:1.5px solid ${prize.color||'#888'}66;">
+          <span class="sc-emoji">${prize.emoji}</span><span class="sc-name">${prize.name}</span>
+        </div>`;
+      wrap.addEventListener('click',()=>onScratch(wrap, prize, idx));
+    }
+    grid.appendChild(wrap);
+  });
 }
-function onScratch(wrap,prize) {
+
+function onScratch(wrap, prize, cardIdx) {
   if(wrap.classList.contains('done')) return;
   const av=getScratchAvailable(); if(!av.length){ showToast('所有奖品已抽完！'); return; }
   const name=checkName(); if(!name) return;
@@ -547,8 +600,17 @@ function onScratch(wrap,prize) {
   history.push({name,prizeName:actual.name,prizeEmoji:actual.emoji,prizeSub:actual.sub});
   save(); renderHistory();
   const front=wrap.querySelector('.scratch-card-front');
-  front.innerHTML=`<span class="sc-emoji">${actual.emoji}</span><span class="sc-name">${actual.name}</span>`;
+  front.innerHTML=`<span class="sc-emoji">${actual.emoji}</span><span class="sc-name">${actual.name}</span><span style="font-size:.6rem;color:rgba(255,255,255,.3);margin-top:2px;">已搓</span>`;
   wrap.classList.add('done'); front.classList.add('revealed');
+  // 更新持久化状态
+  const savedCards = loadScratchCards();
+  if (savedCards && cardIdx !== undefined) {
+    savedCards[cardIdx].done = true;
+    savedCards[cardIdx].actualPrizeId = actual.id;
+    savedCards[cardIdx].actualEmoji = actual.emoji;
+    savedCards[cardIdx].actualName = actual.name;
+    saveScratchCards(savedCards);
+  }
   document.getElementById('nameInput').value='';
   setTimeout(()=>showModal(actual,name),400);
   launchConfetti();
@@ -583,7 +645,7 @@ function resetAll() {
   if(!confirm('确认重置？所有奖品剩余数量和中奖记录将清空！')) return;
   prizes=JSON.parse(localStorage.getItem('lp3_prizes_config')||JSON.stringify(DEFAULT_PRIZES)).map(p=>({...p,remaining:p.total}));
   history=[]; currentAngle=0;
-  localStorage.removeItem('lp3_prizes'); localStorage.removeItem('lp3_history');
+  localStorage.removeItem('lp3_prizes'); localStorage.removeItem('lp3_history'); localStorage.removeItem('lp3_scratch_cards');
   prizes=DEFAULT_PRIZES.map(p=>({...p,remaining:p.total}));
   save(); drawWheel(0); renderPrizeLegend(); renderHistory();
   if(currentMode==='scratch') buildScratchCards();
