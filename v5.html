@@ -461,13 +461,7 @@ function drawWheel(angle=0) {
     ctx.save(); ctx.translate(R,R); ctx.rotate(mid);
     // emoji
     ctx.font=`${n>6?20:24}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(p.emoji, R*0.58, n>6?-10:-12); ctx.restore();
-    // 奖品名缩写（最多4字）
-    ctx.save(); ctx.translate(R,R); ctx.rotate(mid);
-    const label=(p.name||'').replace(/[\s\S]{5,}/,s=>s.slice(0,4)+'…');
-    ctx.font=`bold ${n>6?9:10}px Microsoft YaHei,Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle='rgba(255,255,255,0.9)';
-    ctx.fillText(label, R*0.58, n>6?10:13); ctx.restore();
+    ctx.fillText(p.emoji, R*0.58, 0); ctx.restore();
   });
   ctx.beginPath(); ctx.arc(R,R,R-2,0,Math.PI*2); ctx.strokeStyle='rgba(255,215,0,.5)'; ctx.lineWidth=4; ctx.stroke();
   ctx.beginPath(); ctx.arc(R,R,36,0,Math.PI*2); ctx.fillStyle='#0d0d1a'; ctx.fill();
