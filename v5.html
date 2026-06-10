@@ -388,6 +388,15 @@ const DEFAULT_PRIZES = [
 const DEFAULT_RULES = { mode:'equal', redeemer:'青黛', deadline:'7天' };
 const COLORS = ['#c0392b','#e74c3c','#8e44ad','#2980b9','#e67e22','#16a085','#f39c12','#27ae60','#d35400'];
 
+// ── 版本号（修改奖品后更新此值，自动清除旧缓存）──
+const PRIZE_VERSION = 'v5_prizes_20260610';
+if (localStorage.getItem('lp3_prize_ver') !== PRIZE_VERSION) {
+  localStorage.removeItem('lp3_prizes');
+  localStorage.removeItem('lp3_prizes_scratch');
+  localStorage.removeItem('lp3_rules');
+  localStorage.setItem('lp3_prize_ver', PRIZE_VERSION);
+}
+
 // ── 状态加载 ──
 let prizes = JSON.parse(localStorage.getItem('lp3_prizes')||'null') || DEFAULT_PRIZES.map(p=>({...p,remaining:p.total}));
 let scratchPrizes = JSON.parse(localStorage.getItem('lp3_prizes_scratch')||'null') || DEFAULT_PRIZES.map(p=>({...p,remaining:p.total}));
